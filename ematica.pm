@@ -50,7 +50,7 @@ require AutoLoader;
 @EXPORT_OK = map @{$EXPORT_TAGS{$_}}, keys %EXPORT_TAGS;
 
 # $Format: "$VERSION = sprintf('%5.3f', $ProjectMajorVersion$/10 + ($ProjectMinorVersion$-1)/1000);"$
-$VERSION = sprintf('%5.3f', 11/10 + (6-1)/1000);
+$VERSION = sprintf('%5.3f', 11/10 + (7-1)/1000);
 
 sub AUTOLOAD {
   # This AUTOLOAD is used to 'autoload' constants from the constant()

@@ -9,4 +9,6 @@ ematica.xs
 t/basic.t
 t/callback.t
 t/call.t
+t/install.pl
+t/install.t
 typemap
