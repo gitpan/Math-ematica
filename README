@@ -1,0 +1,35 @@
+This is nearly the same as Math-Mathematica-1.0.5.tar.gz. I just
+changed the name and version numbering when checking with perl-5.002.
+It also runs with perl5.001n (MakeMaker  5.00). 
+
+NAME
+       Math::ematica - Communicate to Mathematica via MathLink
+
+SYNOPSIS
+       use Math::ematica;
+
+       $link = new Math::ematica( MathLink args )
+
+DESCRIPTION
+       This is a very basic interface to the MathLink library of
+       Mathematica. Mathematica is registered trademark of
+       Wolfram Research, Inc. I use version 2.2. There are tree
+       groups of functions.
+
+INSTALLATION:
+
+        Edit Makefile.PL. Customize the variables MATHLIBDIR and
+        MATHINCDIR to match your local settings.
+
+        Before running the test you should also customize MATHPROGRAM,
+        MATHHOST, and MATHPORT. Details are in the comments there.
+
+        Then proceed as usual:
+
+        perl Makefile.PL
+        make
+        make test
+        make install
+
+AUTHOR
+       Ulrich Pfeifer <pfeifer@ls6.informatik.uni-dortmund.de>
