@@ -1,12 +1,12 @@
 #                              -*- Mode: Perl -*- 
 # $Basename: basic.t $
-# $Revision: 1.10 $
+# $Revision: 1.11 $
 # Author          : Ulrich Pfeifer
 # Created On      : Sat Dec 20 17:04:10 1997
 # Last Modified By: Ulrich Pfeifer
-# Last Modified On: Tue Dec 23 01:53:38 1997
+# Last Modified On: Sat Feb 14 11:00:35 1998
 # Language        : CPerl
-# Update Count    : 90
+# Update Count    : 96
 # Status          : Unknown, Use with caution!
 # 
 # (C) Copyright 1997, Ulrich Pfeifer, all rights reserved.
@@ -50,7 +50,7 @@ test {$ml->EndPacket};
 test {$ml->Flush};
 test {$ml->NewPacket};
 test {$ml->NextPacket == RETURNPKT};
-test {$ml->GetNext == MLTKREAL};
+test {my $r = $ml->GetNext; $r == MLTKREAL or $r == MLTKINT};
 test {$ml->GetDouble == 0};
 
 
@@ -70,7 +70,7 @@ test {$ml->NextPacket == RETURNPKT};
 test {$ml->GetNext == MLTKFUNC};
 test { my ($name, $nargs) = $ml->GetFunction; $$name eq 'List' and $nargs == 3};
 
-test {$ml->GetNext == MLTKREAL};
+test {my $r = $ml->GetNext; $r == MLTKREAL or $r == MLTKINT};
 test {$ml->GetNext == MLTKREAL};
 test {$ml->GetNext == MLTKREAL};
 

@@ -1,12 +1,12 @@
 #                              -*- Mode: Perl -*-
 # $Basename: ematica.pm $
-# $Revision: 1.16.1.4 $
+# $Revision: 1.16.1.10 $
 # Author          : Ulrich Pfeifer
 # Created On      : Sat Dec 20 17:05:18 1997
 # Last Modified By: Ulrich Pfeifer
-# Last Modified On: Mon Dec 29 20:48:01 1997
+# Last Modified On: Mon Feb 16 22:09:33 1998
 # Language        : CPerl
-# Update Count    : 164
+# Update Count    : 210
 # Status          : Unknown, Use with caution!
 #
 # (C) Copyright 1997, Ulrich Pfeifer, all rights reserved.
@@ -50,7 +50,7 @@ require AutoLoader;
 @EXPORT_OK = map @{$EXPORT_TAGS{$_}}, keys %EXPORT_TAGS;
 
 # $Format: "$VERSION = sprintf('%5.3f', $ProjectMajorVersion$/10 + ($ProjectMinorVersion$-1)/1000);"$
-$VERSION = sprintf('%5.3f', 11/10 + (1-1)/1000);
+$VERSION = sprintf('%5.3f', 11/10 + (6-1)/1000);
 
 sub AUTOLOAD {
   # This AUTOLOAD is used to 'autoload' constants from the constant()
@@ -315,6 +315,28 @@ You may register functions with unspecified argument types using undef:
   $link->call(['DoPrint',12]);
   $link->call(['DoPrint',"Hello"]);
 
+=head2 C<main>
+
+This method allows to have Perl scripts installed in a running
+Mathematica session.  The Perl script F<try.pl> might look like this:
+
+  use Math::ematica;
+  sub addtwo {
+    my ($x, $y) = @_;
+  
+    $x + $y;
+  }
+  $ml->register('AddTwo', \&addtwo, 'Integer', 'Integer');
+  $ml->main;
+  
+Inside the Mathematica do:
+
+  Install["try.pl"]
+  AddTwo[3,5];
+
+Admittedly, adding two numbers would be easier inside Mathematica. But
+how about DNS lookups or SQL Databases?
+
 =head1 AUTHOR
 
 Ulrich Pfeifer E<lt>F<pfeifer@wait.de>E<gt>
@@ -419,13 +441,17 @@ sub call {
   my $link = shift;
   my $fname = shift;
 
-  # first argument may be symbol name instead of symbol symbol
+  # first argument may be symbol name instead of a symbol
   $fname = symbol $fname unless ref $fname;
   $link->send_packet($fname, @_);
+  $link->dispatch unless $link->{passive};
+}
 
+sub dispatch {
+  my $link = shift;
+  
   $link->NewPacket;
   while (my $packet = $link->NextPacket) {
-    #warn "packet: $packet\n";
     if ($packet == RETURNPKT) {
       return $link->read_packet;
     } elsif ($packet == MESSAGEPKT) {
@@ -444,6 +470,21 @@ sub call {
   $link->NewPacket;
 }
 
+sub main {
+  my $link = shift;
+
+  $link->PutSymbol('End');
+  $link->Flush;
+  delete $link->{passive};
+  $link->NewPacket;
+  while (my $packet = $link->NextPacket) {
+    if ($packet == CALLPKT) {
+      $link->do_callback;
+    } else {
+      warn "Ignoring Unkown packet: $packet\n";
+    }
+  }
+}
 
 sub install {
   my ($link, $name, $nargs, $alias) = @_;
@@ -456,20 +497,22 @@ sub install {
   # encouter a blessed reference in the padlist of the function.
   # So *never* call the installed function after dropping $link!!!
 
-  my $ptr = $$link;
+  my $ptr = $link->{'mlink'};
   my $func = sub {
-    my $link = bless \$ptr, 'Math::ematica'; # this is the *nono*!
+    my $link = bless {mlink => $ptr}, 'Math::ematica'; # this is the *nono*!
+    my $result;
+    
     if (defined $nargs) {
       die "${package}::$alias must be called with $nargs arguments\n"
         if $nargs != @_;
-      $link->call([symbol($name), @_]);
+        $result    = $link->call([symbol($name), @_]);
     } else {
       die "${package}::$alias must be called with $nargs arguments\n"
         if @_;
-      $link->call(symbol($name));
+        $result    = $link->call(symbol($name));
     }
-
-    # $$link = 0;                # $link is never destroyed anyway!?
+    $link->{mlink} = 0;         # make DESTROY less harmfull
+    $result;
   };
 
   no strict 'refs';
@@ -491,9 +534,11 @@ you are not subscribed already if you use this module (a Mathematica
 license is needed anyway). You would be nice to nice people and may
 even read something more about this module one day ;-)
 
+Special thanks to Randal L. Schwartz for naming this module.
+
 =head1 Copyright
 
-The B<Math:ematica> module is Copyright (c) 1996,1997 Ulrich
+The B<Math:ematica> module is Copyright (c) 1996,1997,1998 Ulrich
 Pfeifer. Germany.  All rights reserved.
 
 You may distribute under the terms of either the GNU General Public
@@ -503,3 +548,4 @@ B<Mathematica> and B<MathLink> are registered trademarks of Wolfram
 Research.
 
 =cut
+

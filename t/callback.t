@@ -1,12 +1,12 @@
 #                              -*- Mode: Perl -*- 
 # $Basename: callback.t $
-# $Revision: 1.5 $
+# $Revision: 1.6 $
 # Author          : Ulrich Pfeifer
 # Created On      : Sat Dec 20 17:04:10 1997
 # Last Modified By: Ulrich Pfeifer
-# Last Modified On: Tue Dec 23 01:49:28 1997
+# Last Modified On: Sat Feb 14 13:16:38 1998
 # Language        : CPerl
-# Update Count    : 300
+# Update Count    : 301
 # Status          : Unknown, Use with caution!
 # 
 # (C) Copyright 1997, Ulrich Pfeifer, all rights reserved.
@@ -55,3 +55,4 @@ test {$ml->call([symbol 'Ping']) eq "Pong"};
 test {$ml->register('Foo', sub { print "ok ", ++$test, "\n"; join ':', @_}, undef, undef)};
 test {$ml->call([symbol 'Foo', '1', 1]) eq "1:1"};
 test {$ml->call([symbol 'Foo', '1', 'Ping']) eq "1:Ping"};
+

@@ -1,12 +1,12 @@
 #                              -*- Mode: Perl -*- 
 # $Basename: call.t $
-# $Revision: 1.6.1.3 $
+# $Revision: 1.6.1.5 $
 # Author          : Ulrich Pfeifer
 # Created On      : Sat Dec 20 17:04:10 1997
 # Last Modified By: Ulrich Pfeifer
-# Last Modified On: Tue Dec 23 01:52:57 1997
+# Last Modified On: Sun Feb 15 14:44:52 1998
 # Language        : CPerl
-# Update Count    : 194
+# Update Count    : 202
 # Status          : Unknown, Use with caution!
 # 
 # (C) Copyright 1997, Ulrich Pfeifer, all rights reserved.
@@ -71,12 +71,12 @@ test {int($ml->call([symbol 'Sin', 3.14159265358979/2])*1000) == 1000};
 
 $ml->install('Sin',1);
 
-test { Sin(0) == 0 };
+test { Sin(0) < 0.001 and Sin(0) > -0.001};
+test { Sin(0) == 0};
 
 $ml->install('Pi');
 $ml->install('N',1);
 $ml->install('Divide',2);
 
 test { Sin(Divide(Pi(),2.0)) == 1.0 };
-
 

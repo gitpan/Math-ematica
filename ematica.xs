@@ -1,12 +1,12 @@
 /*                               -*- Mode: C -*- 
  * $Basename: ematica.xs $
- * $Revision: 1.20 $
+ * $Revision: 1.23 $
  * Author          : Ulrich Pfeifer
  * Created On      : Sat Dec 20 15:18:26 1997
  * Last Modified By: Ulrich Pfeifer
- * Last Modified On: Tue Dec 23 01:46:54 1997
+ * Last Modified On: Mon Feb 16 21:07:40 1998
  * Language        : C
- * Update Count    : 234
+ * Update Count    : 247
  * Status          : Unknown, Use with caution!
  * 
  * (C) Copyright 1997, Ulrich Pfeifer, all rights reserved.
@@ -32,9 +32,9 @@ extern "C" {
 MLENV env;
 
 static void
-error(long errno)
+error(long merrno)
 {
-  croak("Mathematica error %ld: %s\n", errno, MLErrorString(env, errno));
+  croak("Mathematica error %ld: %s\n", merrno, MLErrorString(env, merrno));
 }
 
 static SV *
@@ -74,8 +74,8 @@ read_packet (MLINK link)
 
       if (!MLGetString (link, &string))
 	return (RETVAL);
-      MLDisownString (link, string);
       RETVAL = newSVpv ((char *) string, 0);
+      MLDisownString (link, string);
       break;
     }
   case MLTKSYM:{
@@ -125,15 +125,16 @@ MLconstant(name,arg)
 	int		arg
 
 
-MLINK
+SV*
 new(CLASS, ...)
 	char *	CLASS
 CODE: 
 {
   char **argv = NULL;
   int argn;
-  long errno = 0;
-
+  long merrno = 0;
+  MLINK link;
+  HV *self;
   New (14, argv, items, char *);
 
   if (!argv) croak ("Out of memory");
@@ -142,12 +143,18 @@ CODE:
     argv[argn] = (char *) SvPV (ST (argn), na);
   }
 
-  RETVAL = MLOpenArgv (env, argv, argv + items, &errno);
+  link = MLOpenArgv (env, argv, argv + items, &merrno);
 
   Safefree(argv);
 
-  if (errno) error (errno);
-  MLActivate(RETVAL);
+  if (merrno) error (merrno);
+  MLActivate(link);
+
+  self  = newHV();
+  hv_store(self, "mlink", 5, newSViv((int) link), 0); 
+  if (items == 1) 
+    hv_store(self, "passive", 7, newSViv(1), 0); 
+  RETVAL = sv_bless(newRV_noinc((SV*) self), gv_stashpv(CLASS,1));
 }
 OUTPUT: RETVAL
 
