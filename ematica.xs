@@ -4,9 +4,9 @@
  * Author          : Ulrich Pfeifer
  * Created On      : Sat Dec 20 15:18:26 1997
  * Last Modified By: Ulrich Pfeifer
- * Last Modified On: Mon Feb 16 21:07:40 1998
+ * Last Modified On: Tue Dec 19 21:51:37 2000
  * Language        : C
- * Update Count    : 247
+ * Update Count    : 249
  * Status          : Unknown, Use with caution!
  * 
  * (C) Copyright 1997, Ulrich Pfeifer, all rights reserved.
@@ -30,7 +30,7 @@ extern "C" {
 /* Class for Mathematica Symbols */
 #define SYMNAME "Math::ematica::symbol"
 
-MLENV env;
+MLENV env = NULL;
 
 static void
 error(long merrno)
@@ -164,12 +164,20 @@ void
 DESTROY(link)
 	MLINK	link
 CODE:
-	if (link) MLClose(link);
+	if (!env) {
+	  if (PL_dowarn) {
+	    warn("Can not close link during global destruction!");
+	  }
+	} else {
+	  if (link) MLClose(link); 
+	}
+
 
 void
 END()
 CODE:
         MLDeinitialize(env);
+        env = NULL;
 
 kcharp_ct
 MLErrorMessage(link)

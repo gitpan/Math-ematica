@@ -66,6 +66,9 @@ The plain interface
       $ml = new Math::ematica '-linklaunch', '-linkname', 'math -mathlink';
 
     The link is automatically activated on creation and will be closed upon
+    destruction. So `MLCloseLink' is not accessible; use `undef' or lexical
+    variables to store links. If you use a global variable and dont force
+    the link close, you will get an optional warning during global
     destruction.
 
   `ErrorMessage'

@@ -4,9 +4,9 @@
 # Author          : Ulrich Pfeifer
 # Created On      : Sat Dec 20 17:05:18 1997
 # Last Modified By: Ulrich Pfeifer
-# Last Modified On: Sun Dec 10 16:03:52 2000
+# Last Modified On: Tue Dec 19 21:59:42 2000
 # Language        : CPerl
-# Update Count    : 216
+# Update Count    : 219
 # Status          : Unknown, Use with caution!
 #
 # (C) Copyright 1997, Ulrich Pfeifer, all rights reserved.
@@ -50,7 +50,7 @@ require AutoLoader;
 @EXPORT_OK = map @{$EXPORT_TAGS{$_}}, keys %EXPORT_TAGS;
 
 # $Format: "$VERSION = sprintf('%5.3f', $ProjectMajorVersion$/10 + ($ProjectMinorVersion$-1)/1000);"$
-$VERSION = sprintf('%5.3f', 11/10 + (8-1)/1000);
+$VERSION = sprintf('%5.3f', 11/10 + (9-1)/1000);
 
 sub AUTOLOAD {
   # This AUTOLOAD is used to 'autoload' constants from the constant()
@@ -169,7 +169,10 @@ The constructor is just a wrapper around C<MLOpenArgv>.
   $ml = new Math::ematica '-linklaunch', '-linkname', 'math -mathlink';
 
 The link is automatically activated on creation and will be closed
-upon destruction.
+upon destruction.  So C<MLCloseLink> is not accessible; use C<undef>
+or lexical variables to store links.  If you use a global variable and
+dont force the link close, you will get an optional warning during
+global destruction.
 
 =head2 C<ErrorMessage>
 

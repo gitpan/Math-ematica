@@ -4,9 +4,9 @@
 # Author          : Ulrich Pfeifer
 # Created On      : Sat Dec 20 14:42:50 1997
 # Last Modified By: Ulrich Pfeifer
-# Last Modified On: Sun Dec 10 15:58:24 2000
+# Last Modified On: Tue Dec 19 21:59:27 2000
 # Language        : CPerl
-# Update Count    : 43
+# Update Count    : 44
 # Status          : Unknown, Use with caution!
 # 
 # (C) Copyright 1997, Ulrich Pfeifer, all rights reserved.
@@ -38,7 +38,7 @@ WriteMakefile
   (
    'NAME'	=> 'Math::ematica',
    # $Format: "   'VERSION'    => sprintf('%5.3f', $ProjectMajorVersion$/10 + ($ProjectMinorVersion$-1)/1000),"$ 
-   'VERSION'    => sprintf('%5.3f', 11/10 + (8-1)/1000),
+   'VERSION'    => sprintf('%5.3f', 11/10 + (9-1)/1000),
    'dist'       => {COMPRESS => 'gzip -9f'},
    'LIBS'	=> ["-L$LIBDIR -lML", '-lm'],
    'DEFINE'	=> '',

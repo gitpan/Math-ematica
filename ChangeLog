@@ -1,3 +1,8 @@
+2000-12-19  Ulrich Pfeifer  <pfeifer@wait.de>
+
+	* ematica.xs, emathica.pm: do not call LinkClose during global
+	destruction.
+
 2000-12-10  Ulrich Pfeifer  <pfeifer@wait.de>
 
 	* ematica.pm: Solaris nroff seems to hav eproblems with the output
