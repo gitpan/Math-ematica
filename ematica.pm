@@ -1,313 +1,505 @@
-#!/usr/local/ls6/perl/bin/perl
-#                              -*- Mode: Perl -*- 
-# Mathematica.pm -- 
-# ITIID           : $ITI$ $Header $__Header$
+#                              -*- Mode: Perl -*-
+# $Basename: ematica.pm $
+# $Revision: 1.16.1.4 $
 # Author          : Ulrich Pfeifer
-# Created On      : Thu Nov 23 09:40:46 1995
+# Created On      : Sat Dec 20 17:05:18 1997
 # Last Modified By: Ulrich Pfeifer
-# Last Modified On: Mon Mar 25 21:51:36 1996
-# Language        : Perl
-# Update Count    : 52
+# Last Modified On: Mon Dec 29 20:48:01 1997
+# Language        : CPerl
+# Update Count    : 164
 # Status          : Unknown, Use with caution!
-# 
-# (C) Copyright 1995, Universität Dortmund, all rights reserved.
-# 
-# $Locker: pfeifer $
-# $Log: ematica.pm,v $
-# Revision 1.0.1.5  1996/03/25 21:21:52  pfeifer
-# patch6: Renamed package to Math::ematica.
 #
-# Revision 1.0.1.4  1995/11/24  16:17:11  pfeifer
-# patch5: PutCall now has a better idea what Strings, Symbols and
-# patch5: Numbers are.
+# (C) Copyright 1997, Ulrich Pfeifer, all rights reserved.
 #
-# Revision 1.0.1.3  1995/11/24  10:26:03  pfeifer
-# patch4: Convenience functions.
 #
-# Revision 1.0.1.2  1995/11/23  15:19:47  pfeifer
-# patch3: Made OO-Interface.
-#
-# 
 
 package Math::ematica;
+
+use strict;
 use Carp;
+use vars qw($VERSION @ISA %EXPORT_TAGS @EXPORT_OK $AUTOLOAD @FTABLE);
+
 require Exporter;
 require DynaLoader;
 require AutoLoader;
 
 @ISA = qw(Exporter DynaLoader);
-# Items to export into callers namespace by default. Note: do not export
-# names by default without a very good reason. Use EXPORT_OK instead.
-# Do not simply export all your public functions/methods/constants.
-@EXPORT = qw(
-        ADSP_CCBREFNUM
-	ADSP_IOCREFNUM
-	ADSP_TYPE
-	APIENTRY
-	BEGINDLGPKT
-	CALLPKT
-	CB
-	COMMTB_CONNHANDLE
-	COMMTB_TYPE
-	DEVICE_NAME
-	DEVICE_TYPE
-	DISPLAYENDPKT
-	DISPLAYPKT
-	ENDDLGPKT
-	ENTEREXPRPKT
-	ENTERTEXTPKT
-	EVALUATEPKT
-	FIRSTUSERPKT
-	ILLEGALPKT
-	INPUTNAMEPKT
-	INPUTPKT
-	INPUTSTRPKT
-	LASTUSERPKT
-	LOCAL_TYPE
-	LOOPBACK_TYPE
-	MACINTOSH
-	MACTCP_IPDRIVER
-	MACTCP_PARTNER_ADDR
-	MACTCP_PARTNER_PORT
-	MACTCP_STREAM
-	MACTCP_TYPE
-	MENUPKT
-	MESSAGEPKT
-	MLAPI
-	MLBlocking
-	MLBrowse
-	MLBrowseMask
-	MLDefaultOptions
-	MLDontBrowse
-	MLDontInteract
-	MLEABORT
-	MLEACCEPT
-	MLEARGV
-	MLEBADHOST
-	MLEBADNAME
-	MLECLOSED
-	MLECONNECT
-	MLEDEAD
-	MLEGBAD
-	MLEGETENDPACKET
-	MLEGSEQ
-	MLEINIT
-	MLELAUNCH
-	MLELAUNCHAGAIN
-	MLELAUNCHSPACE
-	MLEMEM
-	MLEMODE
-	MLENAMETAKEN
-	MLENEXTPACKET
-	MLENOLISTEN
-	MLENOPARENT
-	MLEOK
-	MLEOVFL
-	MLEPBIG
-	MLEPBTK
-	MLEPROTOCOL
-	MLEPSEQ
-	MLEPUTENDPACKET
-	MLEUNKNOWN
-	MLEUNKNOWNPACKET
-	MLEUSER
-	MLEchoExpression
-	MLInteract
-	MLInteractMask
-	MLInternetVisible
-	MLLocallyVisible
-	MLNetworkVisible
-	MLNetworkVisibleMask
-	MLNonBlocking
-	MLNonBlockingMask
-	MLTKAEND
-	MLTKELEN
-	MLTKEND
-	MLTKERROR
-	MLTKFUNC
-	MLTKINIT
-	MLTKINT
-	MLTKPCTEND
-	MLTKREAL
-	MLTKSTR
-	MLTKSYM
-	MLVersionMask
-	ML_DEFAULT_DIALOG
-	ML_EXTENDED_IS_DOUBLE
-	ML_IGNORE_DIALOG
-	NULL
-	OUTPUTNAMEPKT
-	PIPE_CHILD_PID
-	PIPE_FD
-	PPC_PARTNER_LOCATION
-	PPC_PARTNER_PORT
-	PPC_PARTNER_PSN
-	PPC_SESS_REF_NUM
-	PPC_TYPE
-	RESUMEPKT
-	RETURNEXPRPKT
-	RETURNPKT
-	RETURNTEXTPKT
-	SOCKET_FD
-	SOCKET_PARTNER_ADDR
-	SOCKET_PARTNER_PORT
-	SUSPENDPKT
-	SYNTAXPKT
-	TEXTPKT
-	UNIX
-	UNIXPIPE_TYPE
-	UNIXSOCKET_TYPE
-	UNREGISTERED_TYPE
-	WINLOCAL_TYPE
-	ml_extended
-);
 
-$Math::ematica::VERSION = $Math::ematica::VERSION = 1.006;
+%EXPORT_TAGS =
+  (
+   PACKET => [qw(
+                 BEGINDLGPKT CALLPKT DISPLAYENDPKT DISPLAYPKT ENDDLGPKT
+                 ENTEREXPRPKT ENTERTEXTPKT EVALUATEPKT FIRSTUSERPKT ILLEGALPKT
+                 INPUTNAMEPKT INPUTPKT INPUTSTRPKT LASTUSERPKT MENUPKT MESSAGEPKT
+                 OUTPUTNAMEPKT RESUMEPKT RETURNEXPRPKT RETURNPKT RETURNTEXTPKT
+                 SUSPENDPKT SYNTAXPKT TEXTPKT BEGINDLGPKT CALLPKT DISPLAYENDPKT
+                 DISPLAYPKT ENDDLGPKT ENTEREXPRPKT ENTERTEXTPKT EVALUATEPKT
+                 FIRSTUSERPKT ILLEGALPKT INPUTNAMEPKT INPUTPKT INPUTSTRPKT LASTUSERPKT
+                 MENUPKT MESSAGEPKT OUTPUTNAMEPKT RESUMEPKT RETURNEXPRPKT RETURNPKT
+                 RETURNTEXTPKT SUSPENDPKT SYNTAXPKT TEXTPKT
+                )],
+   TYPE   => [qw(
+                 MLTKAEND MLTKAPCTEND MLTKARRAY MLTKCONT MLTKDIM MLTKELEN MLTKEND
+                 MLTKERR MLTKERROR MLTKFUNC MLTKINT MLTKNULL MLTKOLDINT MLTKOLDREAL
+                 MLTKOLDSTR MLTKOLDSYM MLTKPACKED MLTKPCTEND MLTKREAL MLTKSEND MLTKSTR
+                 MLTKSYM
+                )],
+   FUNC   => [qw(symbol)],
+  );
+
+@EXPORT_OK = map @{$EXPORT_TAGS{$_}}, keys %EXPORT_TAGS;
+
+# $Format: "$VERSION = sprintf('%5.3f', $ProjectMajorVersion$/10 + ($ProjectMinorVersion$-1)/1000);"$
+$VERSION = sprintf('%5.3f', 11/10 + (1-1)/1000);
 
 sub AUTOLOAD {
-    # This AUTOLOAD is used to 'autoload' constants from the constant()
-    # XS function.  If a constant is not found then control is passed
-    # to the AUTOLOAD in AutoLoader.
+  # This AUTOLOAD is used to 'autoload' constants from the constant()
+  # XS function.  If a constant is not found then control is passed
+  # to the AUTOLOAD in AutoLoader.
 
-    local($constname);
-    ($constname = $AUTOLOAD) =~ s/.*:://;
-    $val = constant($constname, @_ ? $_[0] : 0);
-    if ($! != 0) {
-	if ($! =~ /Invalid/) {
-	    $AutoLoader::AUTOLOAD = $AUTOLOAD;
-	    goto &AutoLoader::AUTOLOAD;
-	}
-	else {
-	    ($pack,$file,$line) = caller;
-	    die "Your vendor has not defined Math::ematica macro $constname, used at $pack $file line $line.
-";
-	}
+  my $constname;
+  ($constname = $AUTOLOAD) =~ s/.*:://;
+  my $val = constant($constname, @_ ? $_[0] : 0);
+  if ($! != 0) {
+    if ($! =~ /Invalid/) {
+      $AutoLoader::AUTOLOAD = $AUTOLOAD;
+      goto &AutoLoader::AUTOLOAD;
     }
-    eval "sub $AUTOLOAD { $val }";
-    goto &$AUTOLOAD;
-}
-
-bootstrap Math::ematica;
-
-# Preloaded methods go here.
-
-sub new {
-    my $type = shift;
-    my $self = Open(@_);
-
-    bless $self, $type;
-}
-
-sub DESTROY {
-    Close(@_);
-}
-
-    
-sub Call {
-    my $self = shift;
-
-    $self->PutCall(@_);
-    $self->EndPacket();
-    return($self->Result);
-}
-
-sub PutCall {
-    my $link = shift;
-    my ($name, @args) = @_;
-
-    $link->PutFunction($name, $#args+1); # must be a string!
-    for (@args) {               # this is a hack! Should be in xsub
-        if (ref($_)) {
-            if (ref($_) eq 'ARRAY') {
-                &PutCall($link, @{$_});
-            } else {
-                croak "Not an array reference $_";
-            }
-        } elsif (/^([\"\'])(.*)\1$/i) {   # assume string
-            print "PutString($2)\n" if $debug;
-            $link->PutString($2);
-        } elsif (/^[^\d\.+-]/i) {         # assume symbol
-            print "PutSymbol($_)\n" if $debug;
-            $link->PutSymbol($_);
-        } else {
-            print "PutDouble($_)\n" if $debug;
-            $link->PutDouble($_);         # assume numeric value
-        }
+    else {
+      croak "Your vendor has not defined Math::ematica macro $constname";
     }
+  }
+  eval "sub $AUTOLOAD { $val }";
+  goto &$AUTOLOAD;
 }
 
-sub Result {
-    my $link = shift;
-
-    $link->ResultGet;              # get the result packet or die
-    $link->ResultParse;
-}
-
-sub ResultGet {
-    my $link = shift;
-    my $type;
-
-    while(1) {
-        $type = $link->NextPacket();
-        print "ResultGet: $type\n" if $debug;
-        last if $type == &constant('RETURNPKT',0);
-        if ($type == &constant('MLTKERROR',0)) {
-            croak sprintf("Got error packet %d %s\n", 
-                         $link->Error,
-                         $link->ErrorMessage);
-        } elsif ($type == &constant('MESSAGEPKT',0)) {
-            carp sprintf("Message: %s %s\n", $link->GetSymbol, $link->GetString);
-#        } else {
-#            croak "Unknown message type: $type\n";
-        }
-        $link->NewPacket();
-    }
-}
-
-sub ResultParse {
-    my $link = shift;
-    my ($type, $result, $name, $args, @result);
-
-    $type = $link->GetType();
-
-    print "Result: $type\n" if $debug;
-    if ($type == &constant('MLTKREAL',0)) {
-        $result = $link->GetReal();
-        print "real=$result\n" if $debug;
-    } elsif ($type == &constant('MLTKINT',0)) {
-        $result = $link->GetInteger();
-        print "int=$result\n" if $debug;
-    } elsif ($type == &constant('MLTKSTR',0)) {
-        $result = $link->GetString();
-        print "string=$result\n" if $debug;
-    } elsif ($type == &constant('MLTKSYM',0)) {
-        $result = $link->GetSymbol();
-        print "symbol=$result\n" if $debug;
-    } elsif ($link->GetType() == &constant('MLTKSTR',0)) {
-        $result = $link->GetString();
-        print "string=$result\n" if $debug;
-    } elsif ($link->GetType() == &constant('MLTKFUNC',0)) {
-        ($name, $args) = $link->GetFunction();
-        print "($name, $args)\n" if $debug;
-        for (1 .. $args) {
-            push(@result, $link->ResultParse);
-        }
-        $result = join (',', @result);
-        print "function($args)=$name\[$result\]\n" if $debug;
-        if ($name eq 'List') {
-            return(@result);
-        } elsif ($name eq 'Rational') {
-            return($result[0]/$result[1]);
-        } else {
-            return ($name, @result);
-        }
-    } else {
-        carp "Error -- ouput is not a known package type: $type\n";
-    }
-    $result;
-}
-
-# Autoload methods go after __END__, and are processed by the autosplit program.
+bootstrap Math::ematica $VERSION;
 
 1;
+
+
 __END__
+
+=head1 NAME
+
+Math::ematica - Perl extension for connecting Mathematica(TM)
+
+=head1 SYNOPSIS
+
+  use Math::ematica qw(:PACKET :TYPE :FUNC);
+
+=head1 WARNING
+
+This is B<alpha> software. User visible changes can happen any time.
+
+The module is completely rewritten. Literally no line of the old stuff
+is used (don't ask - I've learned a few things since these days
+;-). If you are using the old 1.006 version, note that the interface
+has changed. If there is an overwhelming outcry, I will provide some
+backward compatibility stuff.
+
+Feel free to suggest modifications and/or extensions. I don not use
+Mathematica for real work right now and may fail to foresee the most
+urgent needs. Even if you think that the interface is great, you are
+invited to complete the documentation (and fix grammos and
+typos). Since I am no native English speaker, I will delay the writing
+of real documentation until the API has stabilized.
+
+I do develop this module using Mathematica 3.0.1 on a Linux 2.0.30
+box. Let me know, if it B<does> work with other versions of
+Mathematica or does B<not> work on other *nix flavors.
+
+=head1 DESCRIPTION
+
+The C<Math::ematica> module provides an interface to the MathLink(TM)
+library. Functions are not exported and should be called as methods.
+Therefore the Perl names have the 'ML' prefix stripped.  Since Perl
+can handle multiple return values, methods fetching elements from the
+link return the values instead of passing results in reference
+parameters.
+
+The representation of the data passed between Perl and Mathematica is
+straight forward exept the symbols which are represented as blessed
+scalars in Perl.
+
+=head1 Exported constants
+
+=over 5
+
+=item  C<PACKET>
+
+The C<PACKET> tag identifies constants used as packet types.
+
+  print "Got result packet" if $link->NextPacket == RETURNPKT;
+
+=item  C<TYPE>
+
+The C<TYPE> tag identifies constants used as elements types.
+
+  print "Got a symbol" if $link->GetNext == MLTKSYM;
+
+=back
+
+=head1 Exported functions
+
+=over 5
+
+=item C<FUNC>
+
+The C<FUNC> tag currently only contains the C<symbol> function which
+returns the symbol for a given name.
+
+  $sym = symbol 'Sin';
+
+=back
+
+=head1 The plain interface
+
+This set of methods gives you direct access to the MathLink function.
+Don't despair if you don't know them too much. There is a convenient
+layer ontop of them ;-). Methods below are only commented if they do
+behave different than the corresponding C functions. Look in your
+MathLink manual for details.
+
+=head2 C<new>
+
+The constructor is just a wrapper around C<MLOpenArgv>.
+
+  $ml = new Math::ematica '-linklaunch', '-linkname', 'math -mathlink';
+
+The link is automatically activated on creation and will be closed
+upon destruction.
+
+=head2 C<ErrorMessage>
+
+  print $link->ErrorMessage;
+
+=head2 C<EndPacket>
+
+=head2 C<Flush>
+
+=head2 C<NewPacket>
+
+=head2 C<NextPacket>
+
+=head2 C<Ready>
+
+=head2 C<PutSymbol>
+
+=head2 C<PutString>
+
+=head2 C<PutInteger>
+
+=head2 C<PutDouble>
+
+=head2 C<PutFunction>
+
+=head2 C<GetNext>
+
+=head2 C<GetInteger>
+
+=head2 C<GetDouble>
+
+=head2 C<GetString>
+
+The method does the appropriate C<MLDisownString> call for you.
+
+=head2 C<GetSymbol>
+
+The module does the appropriate C<MLDisownSymbol> call for you.  It
+also blesses the result string into the package
+C<Math::ematica::symbol>.
+
+=head2 C<Function>
+
+Returns the function name and argument count in list context. In
+scalar contex only the function name is returned.
+
+=head2 C<GetRealList>
+
+Returns the array of reals.
+
+=head1 The convenience interface
+
+=head2 C<PutToken>
+
+Puts a single token according to the passed data type.
+
+  $link->PutToken(1);               # MLPutInteger
+
+Symbols are translated to C<MLPutFunction> if the arity is provided as
+aditional parameter.
+
+  $link->PutToken(symbol 'Pi');     # MLPutSymbol
+  $link->PutToken(symbol 'Sin', 1); # MLPutFunction
+
+=head2 C<read_packet>
+
+Reads the current packet and returns it as nested data structure.  The
+implementaion is not complete. But any packet made up of C<MLTKREAL>,
+C<MLTKINT>, C<MLTKSTR>, C<MLTKSYM>, and C<MLTKFUNC> should translate
+correctely. A function symbol C<List> is dropped automatically. So the
+Mathematica expression C<List[1,2,3]> translates to the Perl
+expression C<[1,2,3]>.
+
+I<Mabybe this is >B<too>I< convenient?>.
+
+=head2 C<call>
+
+Call is the main convenience interface. You will be able to do most if
+not all using this call.
+
+Note that the syntax is nearly the same as you are used to as
+I<FullForm> in Mathematica.  Only the function names are moved inside
+the brackets and separated with ',' from the arguments. The method
+returns the nested data structures read by C<read_packet>.
+
+  $link->call([symbol 'Sin', 3.14159265358979/2]); # returns something near 1
+
+To get a table of values use:
+
+  $link->call([symbol 'Table',
+               [symbol 'Sin', symbol 'x'],
+               [symbol 'List', symbol 'x',  0, 1, 0.1]]);
+
+This returns a reference to an array of doubles.
+
+You may omit the first C<symbol>. I<Maybe we should choose the default
+mapping to >B<Symbol>I< an require >B<Strings>I<s to be marked?>
+
+=head2 C<install>
+
+If you find this too ugly, you may C<install> Mathematica functions as
+Perl functions using the C<install> method.
+
+  $link->install('Sin',1);
+  $link->install('Pi');
+  $link->install('N',1);
+  $link->install('Divide',2);
+
+  Sin(Divide(Pi(),2.0)) # should return 1 (on machines which can
+                        # represent '2.0' *exactely* in a double ;-)
+
+The C<install> method takes the name of the mathematica function, the
+number of arguments and optional the name of the Perl function as
+argument.
+
+  $link->install('Sin',1,'sin_by_mathematica');
+
+Make shure that you do not call any I<installed> function after the
+C<$link> has gone. Wild things will happen!
+
+=head2 C<send_packet>
+
+Is the sending part of C<call>. It translates the expressions passed
+to a Mathematica package and puts it on the link.
+
+=head2 C<register>
+
+This method allows to register your Perl functions to Mathematica.
+I<Registered> functions may be called during calculations.
+
+  sub addtwo {
+    $_[0]+$_[1];
+  }
+
+  $link->register('AddTwo', \&addtwo, 'Integer', 'Integer');
+  $link->call([symbol 'AddTwo',12, 3]) # returns 15
+
+You may register functions with unspecified argument types using undef:
+
+  sub do_print {
+    print @_;
+  }
+  $link->register('DoPrint', undef);
+  $link->call(['DoPrint',12]);
+  $link->call(['DoPrint',"Hello"]);
+
+=head1 AUTHOR
+
+Ulrich Pfeifer E<lt>F<pfeifer@wait.de>E<gt>
+
+=head1 SEE ALSO
+
+See also L<perl(1)> and your Mathematica and MathLink
+documentation. Also check the F<t/*.t> files in the distribution.
+
+=cut
+
+sub send_packet {
+  my $link = shift;
+
+  $link->_send_packet(@_);
+  $link->EndPacket;
+  $link->Flush;
+}
+
+# The following is a cludge. The goal ist to make the Perl syntax the
+# same as the mathematica syntax execpt that the opening '[' are move
+# one token left:
+# Mathematica Perl
+# Sin[x]      [Sin, x]
+# Pi          Pi
+# Blank[]     [Blank]
+
+sub _send_packet {
+  my $link  = shift;
+
+  while (@_) {
+    my $elem = shift;
+    if (ref $elem eq 'ARRAY') {
+      $link->_send_call(@$elem);
+    } else {
+      $link->PutToken($elem);   # PutSymbol in doubt
+    }
+  }
+}
+
+sub _send_call {
+  my ($link, $head, @tail)  = @_;
+
+  if (ref $head eq 'ARRAY') {
+    $link->_send_call(@$head);
+  } else {
+    $link->PutToken($head, scalar @tail) # PutFunction in doubt
+  }
+  while (@tail) {
+    my $elem = shift @tail;
+    if (ref $elem eq 'ARRAY') {
+      $link->_send_call(@$elem);
+    } else {
+      $link->PutToken($elem); # PutSymbol in doubt
+    }
+  }
+}
+
+sub register {
+  my ($link, $name, $code, @args) = @_;
+  my $fno = @FTABLE;
+  my @parm;
+  my $var = 'aaaa';
+
+  push @FTABLE, $code;
+  $FTABLE[$fno] = $code;
+  my @list = (symbol 'List');
+
+  for my $type (@args) {
+    if (defined $type) {
+      push @parm, [symbol 'Pattern', symbol $var, [ symbol 'Blank', symbol $type ]];
+    } else {
+      push @parm, [symbol 'Pattern', symbol $var, [ symbol 'Blank']];
+    }
+    push @list, symbol $var;
+    $var++;
+  }
+  $link->call([symbol 'SetDelayed',
+               [symbol $name, @parm],
+               [symbol 'ExternalCall',
+                [symbol 'LinkObject', "ParentLink", 1, 1],
+                [symbol 'CallPacket', $fno, \@list]]]);
+}
+
+sub do_callback {
+  my $link = shift;
+
+  my $func_no = $link->read_packet;
+  my $args = $link->read_packet;
+  if ($FTABLE[$func_no]) {
+    my @result;
+    if (ref $args eq 'ARRAY') {
+      @result = $FTABLE[$func_no]->(@$args);
+    } else {
+      @result = $FTABLE[$func_no]->();
+    }
+    $link->send_packet(@result);
+  }
+}
+
+sub call {
+  my $link = shift;
+  my $fname = shift;
+
+  # first argument may be symbol name instead of symbol symbol
+  $fname = symbol $fname unless ref $fname;
+  $link->send_packet($fname, @_);
+
+  $link->NewPacket;
+  while (my $packet = $link->NextPacket) {
+    #warn "packet: $packet\n";
+    if ($packet == RETURNPKT) {
+      return $link->read_packet;
+    } elsif ($packet == MESSAGEPKT) {
+      return $link->read_packet;
+    } elsif ($packet == TEXTPKT) {
+      return $link->read_packet;
+    } elsif ($packet == CALLPKT) {
+      $link->do_callback;
+    } elsif ($packet == INPUTNAMEPKT) {
+      next;
+    } else {
+      warn "Ignoring Unkown packet: $packet\n";
+      return;
+    }
+  }
+  $link->NewPacket;
+}
+
+
+sub install {
+  my ($link, $name, $nargs, $alias) = @_;
+  my $package   = caller;
+  $alias ||= $name;
+
+  # This is very bad style. We steal the C pointer from $link since
+  # DESTROY will not be called for it unless the function we generate
+  # is undefined. Perl would die horribly when Perl_destruct would
+  # encouter a blessed reference in the padlist of the function.
+  # So *never* call the installed function after dropping $link!!!
+
+  my $ptr = $$link;
+  my $func = sub {
+    my $link = bless \$ptr, 'Math::ematica'; # this is the *nono*!
+    if (defined $nargs) {
+      die "${package}::$alias must be called with $nargs arguments\n"
+        if $nargs != @_;
+      $link->call([symbol($name), @_]);
+    } else {
+      die "${package}::$alias must be called with $nargs arguments\n"
+        if @_;
+      $link->call(symbol($name));
+    }
+
+    # $$link = 0;                # $link is never destroyed anyway!?
+  };
+
+  no strict 'refs';
+  *{"${package}::$alias"} = $func;
+}
+
+=head1 ACKNOWLEDGEMENTS
+
+I wish to thank Jon Orwant of I<The Perl Journal>, Nancy Blachman from
+I<The Mathematica Journal> and Brett H. Barnhart from I<Wolfram
+Research>.
+
+Jon brought the earlier versions of this module to the attention of
+Nancy Blachman. She in turn did contact Brett H. Barnhart who was so
+kind to provide a trial license which made this work possible.
+
+So subscribe to I<The Perl Journal> and I<The Mathematica Journal> if
+you are not subscribed already if you use this module (a Mathematica
+license is needed anyway). You would be nice to nice people and may
+even read something more about this module one day ;-)
+
+=head1 Copyright
+
+The B<Math:ematica> module is Copyright (c) 1996,1997 Ulrich
+Pfeifer. Germany.  All rights reserved.
+
+You may distribute under the terms of either the GNU General Public
+License or the Artistic License, as specified in the Perl README file.
+
+B<Mathematica> and B<MathLink> are registered trademarks of Wolfram
+Research.
+
+=cut

@@ -1,102 +1,93 @@
-#!/usr/local/ls6/perl/bin/perl
 #                              -*- Mode: Perl -*- 
-# basic.t -- 
-# ITIID           : $ITI$ $Header $__Header$
+# $Basename: basic.t $
+# $Revision: 1.10 $
 # Author          : Ulrich Pfeifer
-# Created On      : Thu Nov 23 20:00:48 1995
+# Created On      : Sat Dec 20 17:04:10 1997
 # Last Modified By: Ulrich Pfeifer
-# Last Modified On: Mon Mar 25 22:08:22 1996
-# Language        : Perl
-# Update Count    : 36
+# Last Modified On: Tue Dec 23 01:53:38 1997
+# Language        : CPerl
+# Update Count    : 90
 # Status          : Unknown, Use with caution!
 # 
-# (C) Copyright 1995, Universität Dortmund, all rights reserved.
+# (C) Copyright 1997, Ulrich Pfeifer, all rights reserved.
 # 
-# $Locker: pfeifer $
-# $Log: basic.t,v $
-# Revision 1.0.1.3  1996/03/25 21:24:24  pfeifer
-# patch6: Fixed bad test numbering.
-#
-# Revision 1.0.1.2  1995/11/24  16:18:33  pfeifer
-# patch5: Now passes strings quoted.
-#
-# Revision 1.0.1.1  1995/11/24  10:26:57  pfeifer
-# patch4: Former test.pl using convenience functions.
-#
 # 
 
-use Math::ematica;
+{
+  my $test;
 
-$MATHHOST = $MATHPORT = $MATHPROGRAM = '';
+  sub test (& ) {
+    my $arg = shift;
+    my $result = eval {&$arg};
 
-open(MF, "Makefile.PL") || die "could not open Makefile.PL: $!";
-while (<MF>) {
-    if (/^\$MATH(PROGRAM|HOST|PORT)\s*=/) {
-        print;
-        eval $_;
-    }
-}
-close(MF);
-
-print "1..8\n";
-
-$launch = !($MATHHOST || $MATHPORT);
-$mathp  = $MATHPROGRAM || 'math';
-print "launch:$launch\n";
-if ($launch) {
-    for (split /:/, $ENV{'PATH'}) {
-        if (-x "$_/$mathp") {
-            $math = "$_/$mathp -mathlink";
-            print "Will launch $math\n";
-        }
-    }
-
-    die "Could not find $math in \$PATH" unless $math;
-    $link = new Math::ematica('-linkname', $math, 
-                                  '-linkmode', 'launch');
-} else {
-    $link = new Math::ematica('-linkname', '3000', 
-                                  '-linkmode', 'Connect',
-                                  '-linkhost', 'schroeder',
-                                  '-linkprotocol', 'TCP',
-                                  );
+    $test++;
+    print "$test: $@\n" if $@;
+    print 'not ' if $@ or not $result;
+    print 'ok ', $test, "\n";
+  }
 }
 
-print "Open\n";
-print (($link)?"ok 1\n":"not ok 1\n");
+BEGIN {
+  my $num_tests = 0;
+  open(SELF, "< $0") or die "Could not open '$0': $!\n";
+  while (defined ($_ = <SELF>)) {
+    $num_tests++ if /^test/;
+  }
+  $| = 1;
+  print "1..$num_tests\n";
+}
 
-print "Let's get the version\n";
-$link->PutSymbol('$Version');
-$link->EndPacket();
-$version = $link->Result();
-print (($version)?"ok 2\n":"not ok 2\n");
+use Math::ematica qw(:PACKET :TYPE);
 
-print "Lets's see what exp(1) is\n";
-$e = $link->Call('Exp',1);
-print "$e\n";
-print (($e == 2.71828182845905)?"ok 3\n":"not ok 3\n");
+my $ml;
 
-print "Lets's see what exp(1) rounded to 4 digits is\n";
-$e = $link->Call('N', ['Exp',1],4);
-print "$e\n";
-print (($e == 2.71828182845905)?"ok 4\n":"not ok 4\n");
+test {$ml = new Math::ematica '-linklaunch', '-linkname', 'math -mathlink'};
+test {$ml->NextPacket == INPUTNAMEPKT};
 
-print "Lets's load a Package\n";
-$e = $link->Call('Needs', '"Statistics`ContinuousDistributions`"'); 
-print "$e\n";
-print (($e eq 'Null')?"ok 5\n":"not ok 5\n");
-
-print "Lets's compute the Normal Distribution at 1.5\n";
-$e = $link->Call('CDF', ['NormalDistribution', 0, 1], 1.5);
-print "$e\n";
-print (($e == 0.933192798731142)?"ok 6\n":"not ok 6\n");
-
-print "Bye\n";
-$link->PutFunction('Exit', 0);
-$link->EndPacket();
-print "ok 7\n";
-
-$link->Close();
-print "ok 8\n";
+test {$ml->PutFunction('Sin', 1)};
+test {$ml->PutDouble(0)};
+test {$ml->EndPacket};
+test {$ml->Flush};
+test {$ml->NewPacket};
+test {$ml->NextPacket == RETURNPKT};
+test {$ml->GetNext == MLTKREAL};
+test {$ml->GetDouble == 0};
 
 
+test {$ml->PutFunction('Table', 2)};
+test {$ml->PutFunction('Sin', 1)};
+test {$ml->PutSymbol('x')};
+test {$ml->PutFunction('List',4)};
+test {$ml->PutSymbol('x')};
+test {$ml->PutDouble(0)};
+test {$ml->PutDouble(1)};
+test {$ml->PutDouble(0.5)};
+test {$ml->EndPacket};
+test {$ml->Flush};
+
+test {$ml->NewPacket};
+test {$ml->NextPacket == RETURNPKT};
+test {$ml->GetNext == MLTKFUNC};
+test { my ($name, $nargs) = $ml->GetFunction; $$name eq 'List' and $nargs == 3};
+
+test {$ml->GetNext == MLTKREAL};
+test {$ml->GetNext == MLTKREAL};
+test {$ml->GetNext == MLTKREAL};
+
+test {$ml->PutFunction('Table', 2)};
+test {$ml->PutFunction('Sin', 1)};
+test {$ml->PutSymbol('x')};
+test {$ml->PutFunction('List',4)};
+test {$ml->PutSymbol('x')};
+test {$ml->PutDouble(0)};
+test {$ml->PutDouble(1)};
+test {$ml->PutDouble(0.5)};
+test {$ml->EndPacket};
+test {$ml->Flush};
+
+test {$ml->NewPacket};
+test {$ml->NextPacket == RETURNPKT};
+test {$ml->GetNext == MLTKFUNC};
+test { my @t = $ml->GetRealList; @t == 3 };
+
+test { $ml->ErrorMessage =~ /everything \s+ ok/ix };

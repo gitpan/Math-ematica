@@ -1,1256 +1,356 @@
 /*                               -*- Mode: C -*- 
- * Mathematica.xs -- 
- * ITIID           : $ITI$ $Header $__Header$
+ * $Basename: ematica.xs $
+ * $Revision: 1.20 $
  * Author          : Ulrich Pfeifer
- * Created On      : Thu Nov 23 09:32:00 1995
+ * Created On      : Sat Dec 20 15:18:26 1997
  * Last Modified By: Ulrich Pfeifer
- * Last Modified On: Wed Dec  6 15:45:41 1995
+ * Last Modified On: Tue Dec 23 01:46:54 1997
  * Language        : C
- * Update Count    : 70
+ * Update Count    : 234
  * Status          : Unknown, Use with caution!
  * 
- * (C) Copyright 1995, Universität Dortmund, all rights reserved.
+ * (C) Copyright 1997, Ulrich Pfeifer, all rights reserved.
  * 
- * $Locker: pfeifer $
- * $Log: ematica.xs,v $
- * Revision 1.0.1.5  1996/03/25 21:23:41  pfeifer
- * patch6: Renamed package to Math::ematica.
- * patch6: Checks for out-of-memory errors.
- *
- * Revision 1.0.1.4  1995/11/24  16:18:14  pfeifer
- * patch5: Added MLGetRealList() and MLPutRealList().
- *
- * Revision 1.0.1.3  1995/11/24  10:26:32  pfeifer
- * patch4: Bugfixes ;-)
- *
- * Revision 1.0.1.2  1995/11/23  15:20:41  pfeifer
- * patch3: Removed all Functions. Added some by hand with more perlish
- * patch3: interface.
- *
  */
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 #include "EXTERN.h"
 #include "perl.h"
 #include "XSUB.h"
+#ifdef __cplusplus
+}
+#endif
 
 #include <mathlink.h>
-#ifdef VERSION
-#undef VERSION
-#endif
-#include "patchlevel.h"
+#include "constants.h"
 
-static int
-not_here(s)
-char *s;
+/* Class for Mathematica Symbols */
+#define SYMNAME "Math::ematica::symbol"
+
+MLENV env;
+
+static void
+error(long errno)
 {
-    croak("%s not implemented on this architecture", s);
-    return -1;
+  croak("Mathematica error %ld: %s\n", errno, MLErrorString(env, errno));
 }
 
-void
-init_Math ()
+static SV *
+make_symbol(char * name)
 {
-  char            buf[80];
-  SV             *version = perl_get_sv ("Math::ematica::version", TRUE);
-  sv_setpv  (version, sprintf (buf, "%3.1f%d", VERSION, PATCHLEVEL));
+  SV * result = newRV_noinc(newSVpv(name,0));
+  sv_bless(result, gv_stashpv(SYMNAME,1));
+  return (result);
 }
 
-static double
-constant(name, arg)
-char *name;
-int arg;
+static SV *
+read_packet (MLINK link)
 {
-    errno = 0;
-    switch (*name) {
-    case 'A':
-	if (strEQ(name, "ADSP_CCBREFNUM"))
-#ifdef ADSP_CCBREFNUM
-	    return ADSP_CCBREFNUM;
-#else
-	    goto not_there;
-#endif
-	if (strEQ(name, "ADSP_IOCREFNUM"))
-#ifdef ADSP_IOCREFNUM
-	    return ADSP_IOCREFNUM;
-#else
-	    goto not_there;
-#endif
-	if (strEQ(name, "ADSP_TYPE"))
-#ifdef ADSP_TYPE
-	    return ADSP_TYPE;
-#else
-	    goto not_there;
-#endif
-	if (strEQ(name, "APIENTRY"))
-#ifdef APIENTRY
-	    return APIENTRY;
-#else
-	    goto not_there;
-#endif
-	break;
-    case 'B':
-	if (strEQ(name, "BEGINDLGPKT"))
-#ifdef BEGINDLGPKT
-	    return BEGINDLGPKT;
-#else
-	    goto not_there;
-#endif
-	break;
-    case 'C':
-	if (strEQ(name, "CALLPKT"))
-#ifdef CALLPKT
-	    return CALLPKT;
-#else
-	    goto not_there;
-#endif
-	if (strEQ(name, "CB"))
-#ifdef CB
-	    return CB;
-#else
-	    goto not_there;
-#endif
-	if (strEQ(name, "COMMTB_CONNHANDLE"))
-#ifdef COMMTB_CONNHANDLE
-	    return COMMTB_CONNHANDLE;
-#else
-	    goto not_there;
-#endif
-	if (strEQ(name, "COMMTB_TYPE"))
-#ifdef COMMTB_TYPE
-	    return COMMTB_TYPE;
-#else
-	    goto not_there;
-#endif
-	break;
-    case 'D':
-	if (strEQ(name, "DEVICE_NAME"))
-#ifdef DEVICE_NAME
-	    return DEVICE_NAME;
-#else
-	    goto not_there;
-#endif
-	if (strEQ(name, "DEVICE_TYPE"))
-#ifdef DEVICE_TYPE
-	    return DEVICE_TYPE;
-#else
-	    goto not_there;
-#endif
-	if (strEQ(name, "DISPLAYENDPKT"))
-#ifdef DISPLAYENDPKT
-	    return DISPLAYENDPKT;
-#else
-	    goto not_there;
-#endif
-	if (strEQ(name, "DISPLAYPKT"))
-#ifdef DISPLAYPKT
-	    return DISPLAYPKT;
-#else
-	    goto not_there;
-#endif
-	break;
-    case 'E':
-	if (strEQ(name, "ENDDLGPKT"))
-#ifdef ENDDLGPKT
-	    return ENDDLGPKT;
-#else
-	    goto not_there;
-#endif
-	if (strEQ(name, "ENTEREXPRPKT"))
-#ifdef ENTEREXPRPKT
-	    return ENTEREXPRPKT;
-#else
-	    goto not_there;
-#endif
-	if (strEQ(name, "ENTERTEXTPKT"))
-#ifdef ENTERTEXTPKT
-	    return ENTERTEXTPKT;
-#else
-	    goto not_there;
-#endif
-	if (strEQ(name, "EVALUATEPKT"))
-#ifdef EVALUATEPKT
-	    return EVALUATEPKT;
-#else
-	    goto not_there;
-#endif
-	break;
-    case 'F':
-	if (strEQ(name, "FIRSTUSERPKT"))
-#ifdef FIRSTUSERPKT
-	    return FIRSTUSERPKT;
-#else
-	    goto not_there;
-#endif
-	break;
-    case 'G':
-	break;
-    case 'H':
-	break;
-    case 'I':
-	if (strEQ(name, "ILLEGALPKT"))
-#ifdef ILLEGALPKT
-	    return ILLEGALPKT;
-#else
-	    goto not_there;
-#endif
-	if (strEQ(name, "INPUTNAMEPKT"))
-#ifdef INPUTNAMEPKT
-	    return INPUTNAMEPKT;
-#else
-	    goto not_there;
-#endif
-	if (strEQ(name, "INPUTPKT"))
-#ifdef INPUTPKT
-	    return INPUTPKT;
-#else
-	    goto not_there;
-#endif
-	if (strEQ(name, "INPUTSTRPKT"))
-#ifdef INPUTSTRPKT
-	    return INPUTSTRPKT;
-#else
-	    goto not_there;
-#endif
-	break;
-    case 'J':
-	break;
-    case 'K':
-	break;
-    case 'L':
-	if (strEQ(name, "LASTUSERPKT"))
-#ifdef LASTUSERPKT
-	    return LASTUSERPKT;
-#else
-	    goto not_there;
-#endif
-	if (strEQ(name, "LOCAL_TYPE"))
-#ifdef LOCAL_TYPE
-	    return LOCAL_TYPE;
-#else
-	    goto not_there;
-#endif
-	if (strEQ(name, "LOOPBACK_TYPE"))
-#ifdef LOOPBACK_TYPE
-	    return LOOPBACK_TYPE;
-#else
-	    goto not_there;
-#endif
-	break;
-    case 'M':
-	if (strEQ(name, "MACINTOSH"))
-#ifdef MACINTOSH
-	    return MACINTOSH;
-#else
-	    goto not_there;
-#endif
-	if (strEQ(name, "MACTCP_IPDRIVER"))
-#ifdef MACTCP_IPDRIVER
-	    return MACTCP_IPDRIVER;
-#else
-	    goto not_there;
-#endif
-	if (strEQ(name, "MACTCP_PARTNER_ADDR"))
-#ifdef MACTCP_PARTNER_ADDR
-	    return MACTCP_PARTNER_ADDR;
-#else
-	    goto not_there;
-#endif
-	if (strEQ(name, "MACTCP_PARTNER_PORT"))
-#ifdef MACTCP_PARTNER_PORT
-	    return MACTCP_PARTNER_PORT;
-#else
-	    goto not_there;
-#endif
-	if (strEQ(name, "MACTCP_STREAM"))
-#ifdef MACTCP_STREAM
-	    return MACTCP_STREAM;
-#else
-	    goto not_there;
-#endif
-	if (strEQ(name, "MACTCP_TYPE"))
-#ifdef MACTCP_TYPE
-	    return MACTCP_TYPE;
-#else
-	    goto not_there;
-#endif
-	if (strEQ(name, "MENUPKT"))
-#ifdef MENUPKT
-	    return MENUPKT;
-#else
-	    goto not_there;
-#endif
-	if (strEQ(name, "MESSAGEPKT"))
-#ifdef MESSAGEPKT
-	    return MESSAGEPKT;
-#else
-	    goto not_there;
-#endif
-	if (strEQ(name, "MLAPI"))
-#ifdef MLAPI
-	    return MLAPI;
-#else
-	    goto not_there;
-#endif
-	if (strEQ(name, "MLBlocking"))
-#ifdef MLBlocking
-	    return MLBlocking;
-#else
-	    goto not_there;
-#endif
-	if (strEQ(name, "MLBrowse"))
-#ifdef MLBrowse
-	    return MLBrowse;
-#else
-	    goto not_there;
-#endif
-	if (strEQ(name, "MLBrowseMask"))
-#ifdef MLBrowseMask
-	    return MLBrowseMask;
-#else
-	    goto not_there;
-#endif
-	if (strEQ(name, "MLDefaultOptions"))
-#ifdef MLDefaultOptions
-	    return MLDefaultOptions;
-#else
-	    goto not_there;
-#endif
-	if (strEQ(name, "MLDontBrowse"))
-#ifdef MLDontBrowse
-	    return MLDontBrowse;
-#else
-	    goto not_there;
-#endif
-	if (strEQ(name, "MLDontInteract"))
-#ifdef MLDontInteract
-	    return MLDontInteract;
-#else
-	    goto not_there;
-#endif
-	if (strEQ(name, "MLEABORT"))
-#ifdef MLEABORT
-	    return MLEABORT;
-#else
-	    goto not_there;
-#endif
-	if (strEQ(name, "MLEACCEPT"))
-#ifdef MLEACCEPT
-	    return MLEACCEPT;
-#else
-	    goto not_there;
-#endif
-	if (strEQ(name, "MLEARGV"))
-#ifdef MLEARGV
-	    return MLEARGV;
-#else
-	    goto not_there;
-#endif
-	if (strEQ(name, "MLEBADHOST"))
-#ifdef MLEBADHOST
-	    return MLEBADHOST;
-#else
-	    goto not_there;
-#endif
-	if (strEQ(name, "MLEBADNAME"))
-#ifdef MLEBADNAME
-	    return MLEBADNAME;
-#else
-	    goto not_there;
-#endif
-	if (strEQ(name, "MLECLOSED"))
-#ifdef MLECLOSED
-	    return MLECLOSED;
-#else
-	    goto not_there;
-#endif
-	if (strEQ(name, "MLECONNECT"))
-#ifdef MLECONNECT
-	    return MLECONNECT;
-#else
-	    goto not_there;
-#endif
-	if (strEQ(name, "MLEDEAD"))
-#ifdef MLEDEAD
-	    return MLEDEAD;
-#else
-	    goto not_there;
-#endif
-	if (strEQ(name, "MLEGBAD"))
-#ifdef MLEGBAD
-	    return MLEGBAD;
-#else
-	    goto not_there;
-#endif
-	if (strEQ(name, "MLEGETENDPACKET"))
-#ifdef MLEGETENDPACKET
-	    return MLEGETENDPACKET;
-#else
-	    goto not_there;
-#endif
-	if (strEQ(name, "MLEGSEQ"))
-#ifdef MLEGSEQ
-	    return MLEGSEQ;
-#else
-	    goto not_there;
-#endif
-	if (strEQ(name, "MLEINIT"))
-#ifdef MLEINIT
-	    return MLEINIT;
-#else
-	    goto not_there;
-#endif
-	if (strEQ(name, "MLELAUNCH"))
-#ifdef MLELAUNCH
-	    return MLELAUNCH;
-#else
-	    goto not_there;
-#endif
-	if (strEQ(name, "MLELAUNCHAGAIN"))
-#ifdef MLELAUNCHAGAIN
-	    return MLELAUNCHAGAIN;
-#else
-	    goto not_there;
-#endif
-	if (strEQ(name, "MLELAUNCHSPACE"))
-#ifdef MLELAUNCHSPACE
-	    return MLELAUNCHSPACE;
-#else
-	    goto not_there;
-#endif
-	if (strEQ(name, "MLEMEM"))
-#ifdef MLEMEM
-	    return MLEMEM;
-#else
-	    goto not_there;
-#endif
-	if (strEQ(name, "MLEMODE"))
-#ifdef MLEMODE
-	    return MLEMODE;
-#else
-	    goto not_there;
-#endif
-	if (strEQ(name, "MLENAMETAKEN"))
-#ifdef MLENAMETAKEN
-	    return MLENAMETAKEN;
-#else
-	    goto not_there;
-#endif
-	if (strEQ(name, "MLENEXTPACKET"))
-#ifdef MLENEXTPACKET
-	    return MLENEXTPACKET;
-#else
-	    goto not_there;
-#endif
-	if (strEQ(name, "MLENOLISTEN"))
-#ifdef MLENOLISTEN
-	    return MLENOLISTEN;
-#else
-	    goto not_there;
-#endif
-	if (strEQ(name, "MLENOPARENT"))
-#ifdef MLENOPARENT
-	    return MLENOPARENT;
-#else
-	    goto not_there;
-#endif
-	if (strEQ(name, "MLEOK"))
-#ifdef MLEOK
-	    return MLEOK;
-#else
-	    goto not_there;
-#endif
-	if (strEQ(name, "MLEOVFL"))
-#ifdef MLEOVFL
-	    return MLEOVFL;
-#else
-	    goto not_there;
-#endif
-	if (strEQ(name, "MLEPBIG"))
-#ifdef MLEPBIG
-	    return MLEPBIG;
-#else
-	    goto not_there;
-#endif
-	if (strEQ(name, "MLEPBTK"))
-#ifdef MLEPBTK
-	    return MLEPBTK;
-#else
-	    goto not_there;
-#endif
-	if (strEQ(name, "MLEPROTOCOL"))
-#ifdef MLEPROTOCOL
-	    return MLEPROTOCOL;
-#else
-	    goto not_there;
-#endif
-	if (strEQ(name, "MLEPSEQ"))
-#ifdef MLEPSEQ
-	    return MLEPSEQ;
-#else
-	    goto not_there;
-#endif
-	if (strEQ(name, "MLEPUTENDPACKET"))
-#ifdef MLEPUTENDPACKET
-	    return MLEPUTENDPACKET;
-#else
-	    goto not_there;
-#endif
-	if (strEQ(name, "MLEUNKNOWN"))
-#ifdef MLEUNKNOWN
-	    return MLEUNKNOWN;
-#else
-	    goto not_there;
-#endif
-	if (strEQ(name, "MLEUNKNOWNPACKET"))
-#ifdef MLEUNKNOWNPACKET
-	    return MLEUNKNOWNPACKET;
-#else
-	    goto not_there;
-#endif
-	if (strEQ(name, "MLEUSER"))
-#ifdef MLEUSER
-	    return MLEUSER;
-#else
-	    goto not_there;
-#endif
-	if (strEQ(name, "MLEchoExpression"))
-#ifdef MLEchoExpression
-	    return MLEchoExpression;
-#else
-	    goto not_there;
-#endif
-	if (strEQ(name, "MLInteract"))
-#ifdef MLInteract
-	    return MLInteract;
-#else
-	    goto not_there;
-#endif
-	if (strEQ(name, "MLInteractMask"))
-#ifdef MLInteractMask
-	    return MLInteractMask;
-#else
-	    goto not_there;
-#endif
-	if (strEQ(name, "MLInternetVisible"))
-#ifdef MLInternetVisible
-	    return MLInternetVisible;
-#else
-	    goto not_there;
-#endif
-	if (strEQ(name, "MLLocallyVisible"))
-#ifdef MLLocallyVisible
-	    return MLLocallyVisible;
-#else
-	    goto not_there;
-#endif
-	if (strEQ(name, "MLNetworkVisible"))
-#ifdef MLNetworkVisible
-	    return MLNetworkVisible;
-#else
-	    goto not_there;
-#endif
-	if (strEQ(name, "MLNetworkVisibleMask"))
-#ifdef MLNetworkVisibleMask
-	    return MLNetworkVisibleMask;
-#else
-	    goto not_there;
-#endif
-	if (strEQ(name, "MLNonBlocking"))
-#ifdef MLNonBlocking
-	    return MLNonBlocking;
-#else
-	    goto not_there;
-#endif
-	if (strEQ(name, "MLNonBlockingMask"))
-#ifdef MLNonBlockingMask
-	    return MLNonBlockingMask;
-#else
-	    goto not_there;
-#endif
-	if (strEQ(name, "MLTKAEND"))
-#ifdef MLTKAEND
-	    return MLTKAEND;
-#else
-	    goto not_there;
-#endif
-	if (strEQ(name, "MLTKELEN"))
-#ifdef MLTKELEN
-	    return MLTKELEN;
-#else
-	    goto not_there;
-#endif
-	if (strEQ(name, "MLTKEND"))
-#ifdef MLTKEND
-	    return MLTKEND;
-#else
-	    goto not_there;
-#endif
-	if (strEQ(name, "MLTKERROR"))
-#ifdef MLTKERROR
-	    return MLTKERROR;
-#else
-	    goto not_there;
-#endif
-	if (strEQ(name, "MLTKFUNC"))
-#ifdef MLTKFUNC
-	    return MLTKFUNC;
-#else
-	    goto not_there;
-#endif
-	if (strEQ(name, "MLTKINIT"))
-#ifdef MLTKINIT
-	    return MLTKINIT;
-#else
-	    goto not_there;
-#endif
-	if (strEQ(name, "MLTKINT"))
-#ifdef MLTKINT
-	    return MLTKINT;
-#else
-	    goto not_there;
-#endif
-	if (strEQ(name, "MLTKPCTEND"))
-#ifdef MLTKPCTEND
-	    return MLTKPCTEND;
-#else
-	    goto not_there;
-#endif
-	if (strEQ(name, "MLTKREAL"))
-#ifdef MLTKREAL
-	    return MLTKREAL;
-#else
-	    goto not_there;
-#endif
-	if (strEQ(name, "MLTKSTR"))
-#ifdef MLTKSTR
-	    return MLTKSTR;
-#else
-	    goto not_there;
-#endif
-	if (strEQ(name, "MLTKSYM"))
-#ifdef MLTKSYM
-	    return MLTKSYM;
-#else
-	    goto not_there;
-#endif
-	if (strEQ(name, "MLVersionMask"))
-#ifdef MLVersionMask
-	    return MLVersionMask;
-#else
-	    goto not_there;
-#endif
-	if (strEQ(name, "ML_DEFAULT_DIALOG"))
-#ifdef ML_DEFAULT_DIALOG
-	    return (long) ML_DEFAULT_DIALOG;
-#else
-	    goto not_there;
-#endif
-	if (strEQ(name, "ML_EXTENDED_IS_DOUBLE"))
-#ifdef ML_EXTENDED_IS_DOUBLE
-	    return ML_EXTENDED_IS_DOUBLE;
-#else
-	    goto not_there;
-#endif
-	if (strEQ(name, "ML_IGNORE_DIALOG"))
-#ifdef ML_IGNORE_DIALOG
-	    return (long) ML_IGNORE_DIALOG;
-#else
-	    goto not_there;
-#endif
-	break;
-    case 'N':
-	if (strEQ(name, "NULL"))
-#ifdef NULL
-	    return NULL;
-#else
-	    goto not_there;
-#endif
-	break;
-    case 'O':
-	if (strEQ(name, "OUTPUTNAMEPKT"))
-#ifdef OUTPUTNAMEPKT
-	    return OUTPUTNAMEPKT;
-#else
-	    goto not_there;
-#endif
-	break;
-    case 'P':
-	if (strEQ(name, "PIPE_CHILD_PID"))
-#ifdef PIPE_CHILD_PID
-	    return PIPE_CHILD_PID;
-#else
-	    goto not_there;
-#endif
-	if (strEQ(name, "PIPE_FD"))
-#ifdef PIPE_FD
-	    return PIPE_FD;
-#else
-	    goto not_there;
-#endif
-	if (strEQ(name, "PPC_PARTNER_LOCATION"))
-#ifdef PPC_PARTNER_LOCATION
-	    return PPC_PARTNER_LOCATION;
-#else
-	    goto not_there;
-#endif
-	if (strEQ(name, "PPC_PARTNER_PORT"))
-#ifdef PPC_PARTNER_PORT
-	    return PPC_PARTNER_PORT;
-#else
-	    goto not_there;
-#endif
-	if (strEQ(name, "PPC_PARTNER_PSN"))
-#ifdef PPC_PARTNER_PSN
-	    return PPC_PARTNER_PSN;
-#else
-	    goto not_there;
-#endif
-	if (strEQ(name, "PPC_SESS_REF_NUM"))
-#ifdef PPC_SESS_REF_NUM
-	    return PPC_SESS_REF_NUM;
-#else
-	    goto not_there;
-#endif
-	if (strEQ(name, "PPC_TYPE"))
-#ifdef PPC_TYPE
-	    return PPC_TYPE;
-#else
-	    goto not_there;
-#endif
-	break;
-    case 'Q':
-	break;
-    case 'R':
-	if (strEQ(name, "RESUMEPKT"))
-#ifdef RESUMEPKT
-	    return RESUMEPKT;
-#else
-	    goto not_there;
-#endif
-	if (strEQ(name, "RETURNEXPRPKT"))
-#ifdef RETURNEXPRPKT
-	    return RETURNEXPRPKT;
-#else
-	    goto not_there;
-#endif
-	if (strEQ(name, "RETURNPKT"))
-#ifdef RETURNPKT
-	    return RETURNPKT;
-#else
-	    goto not_there;
-#endif
-	if (strEQ(name, "RETURNTEXTPKT"))
-#ifdef RETURNTEXTPKT
-	    return RETURNTEXTPKT;
-#else
-	    goto not_there;
-#endif
-	break;
-    case 'S':
-	if (strEQ(name, "SOCKET_FD"))
-#ifdef SOCKET_FD
-	    return SOCKET_FD;
-#else
-	    goto not_there;
-#endif
-	if (strEQ(name, "SOCKET_PARTNER_ADDR"))
-#ifdef SOCKET_PARTNER_ADDR
-	    return SOCKET_PARTNER_ADDR;
-#else
-	    goto not_there;
-#endif
-	if (strEQ(name, "SOCKET_PARTNER_PORT"))
-#ifdef SOCKET_PARTNER_PORT
-	    return SOCKET_PARTNER_PORT;
-#else
-	    goto not_there;
-#endif
-	if (strEQ(name, "SUSPENDPKT"))
-#ifdef SUSPENDPKT
-	    return SUSPENDPKT;
-#else
-	    goto not_there;
-#endif
-	if (strEQ(name, "SYNTAXPKT"))
-#ifdef SYNTAXPKT
-	    return SYNTAXPKT;
-#else
-	    goto not_there;
-#endif
-	break;
-    case 'T':
-	if (strEQ(name, "TEXTPKT"))
-#ifdef TEXTPKT
-	    return TEXTPKT;
-#else
-	    goto not_there;
-#endif
-	break;
-    case 'U':
-	if (strEQ(name, "UNIX"))
-#ifdef UNIX
-	    return UNIX;
-#else
-	    goto not_there;
-#endif
-	if (strEQ(name, "UNIXPIPE_TYPE"))
-#ifdef UNIXPIPE_TYPE
-	    return UNIXPIPE_TYPE;
-#else
-	    goto not_there;
-#endif
-	if (strEQ(name, "UNIXSOCKET_TYPE"))
-#ifdef UNIXSOCKET_TYPE
-	    return UNIXSOCKET_TYPE;
-#else
-	    goto not_there;
-#endif
-	if (strEQ(name, "UNREGISTERED_TYPE"))
-#ifdef UNREGISTERED_TYPE
-	    return UNREGISTERED_TYPE;
-#else
-	    goto not_there;
-#endif
-	break;
-    case 'V':
-	break;
-    case 'W':
-	if (strEQ(name, "WINLOCAL_TYPE"))
-#ifdef WINLOCAL_TYPE
-	    return WINLOCAL_TYPE;
-#else
-	    goto not_there;
-#endif
-	break;
-    case 'X':
-	break;
-    case 'Y':
-	break;
-    case 'Z':
-	break;
-    case 'a':
-	break;
-    case 'b':
-	break;
-    case 'c':
-	break;
-    case 'd':
-	break;
-    case 'e':
-	break;
-    case 'f':
-	break;
-    case 'g':
-	break;
-    case 'h':
-	break;
-    case 'i':
-	break;
-    case 'j':
-	break;
-    case 'k':
-	break;
-    case 'l':
-	break;
-    case 'm':
-	break;
-    case 'n':
-	break;
-    case 'o':
-	break;
-    case 'p':
-	break;
-    case 'q':
-	break;
-    case 'r':
-	break;
-    case 's':
-	break;
-    case 't':
-	break;
-    case 'u':
-	break;
-    case 'v':
-	break;
-    case 'w':
-	break;
-    case 'x':
-	break;
-    case 'y':
-	break;
-    case 'z':
-	break;
+  mlapi_token token;
+  SV *RETVAL = NULL;
+
+  token = MLGetNext (link);
+  switch (token) {
+  case MLTKREAL:{
+      double real;
+
+      if (!MLGetDouble (link, &real))
+	return (RETVAL);
+      RETVAL = newSVnv (real);
+      break;
     }
-    errno = EINVAL;
-    return 0;
+  case MLTKINT:{
+      int integer;
 
-not_there:
-    errno = ENOENT;
-    return 0;
+      if (!MLGetInteger (link, &integer))
+	return (RETVAL);
+      RETVAL = newSViv (integer);
+      break;
+    }
+  case MLTKSTR:{
+      kcharp_ct string;
+
+      if (!MLGetString (link, &string))
+	return (RETVAL);
+      MLDisownString (link, string);
+      RETVAL = newSVpv ((char *) string, 0);
+      break;
+    }
+  case MLTKSYM:{
+      kcharp_ct string;
+
+      if (!MLGetSymbol (link, &string))
+	return (RETVAL);
+      RETVAL = make_symbol ((char *) string);
+      MLDisownSymbol (link, string);
+      break;
+    }
+  case MLTKFUNC:{
+      kcharp_ct string;
+      long_st nargs;
+      long_st i;
+      long_st j = 0;
+      AV * array;
+
+      if (!MLGetFunction (link, &string, &nargs))
+	return (&sv_undef);
+
+      array = newAV ();
+      av_extend(array, nargs+1);
+      if (strNE(string,"List"))
+        av_store (array, j++, make_symbol ((char *) string)); 
+      MLDisownSymbol (link, string);
+      for (i = 0; i < nargs; i++) {
+	av_store (array, j++, read_packet (link));
+      }
+      RETVAL = (SV *) newRV_noinc((SV*)array);
+      break;
+    }
+  default:
+    warn("Unknow packet type: %c\n", token);
+  }
+  return (RETVAL);
 }
 
+MODULE = Math::ematica	 PACKAGE = Math::ematica	  PREFIX = ML
 
-MODULE = Math::ematica PACKAGE = Math::ematica PREFIX = ML
 BOOT:
-init_Math();
-
+  env = MLInitialize(0);
 
 double
-constant(name,arg)
+MLconstant(name,arg)
 	char *		name
 	int		arg
 
+
 MLINK
-MLOpen(...)
-CODE:
+new(CLASS, ...)
+	char *	CLASS
+CODE: 
 {
-    char **args = NULL;
-    
-    if (items) {
-        int i;
-                                /* MathLink reads beyond the array! */
-        args = (char **)malloc((items+1) * sizeof(char *));
-        if (!args) croak("Out of memory");
-        for (i=0;i<items;i++) {
-            args[i] = (char *)SvPV(ST(i), na);
-        }
-        args[items]=NULL;
-    }
-    RETVAL = MLOpen(items, args);
-    if (args) free(args);
-    ST(0) = sv_newmortal();
-    if (RETVAL) sv_setref_pv(ST(0), "Math::ematica", (void*)RETVAL);
+  char **argv = NULL;
+  int argn;
+  long errno = 0;
+
+  New (14, argv, items, char *);
+
+  if (!argv) croak ("Out of memory");
+
+  for (argn = 0; argn < items; argn++) {
+    argv[argn] = (char *) SvPV (ST (argn), na);
+  }
+
+  RETVAL = MLOpenArgv (env, argv, argv + items, &errno);
+
+  Safefree(argv);
+
+  if (errno) error (errno);
+  MLActivate(RETVAL);
 }
+OUTPUT: RETVAL
+
 
 void
-MLClose(mlink)
-	MLINK	mlink
+DESTROY(link)
+	MLINK	link
 CODE:
-    if (mlink != (MLINK) 0xDeadBeef) {  /* sv_setref_pv cannot use NULL */
-        MLClose(mlink);
-        mlink=(MLINK) 0xDeadBeef;
-    }
+	if (link) MLClose(link);
+
+void
+END()
+CODE:
+        MLDeinitialize(env);
+
+kcharp_ct
+MLErrorMessage(link)
+	MLINK	link
+
+
+ # Basic PACKET-functions 
+ # sending packets
+
+mlapi_result
+MLEndPacket(link)
+	MLINK	link
+
+mlapi_result
+MLFlush(link)
+	MLINK	link
+
+mlapi_result
+MLNewPacket(link)
+	MLINK	link
+	
+ # receiving packets
+
+mlapi_packet
+MLNextPacket(link)
+	MLINK	link
+
+mlapi_result
+MLReady(link)
+	MLINK	link
+
+ # Basic PUT-functions 
+
+mlapi_result
+MLPutSymbol(link, string)
+	MLINK	  link
+	kcharp_ct string
+
+mlapi_result
+MLPutString(link, string)
+	MLINK	  link
+	kcharp_ct string
+
+mlapi_result
+MLPutInteger(link, integer)
+	MLINK	link
+	int_nt 	integer
+
+mlapi_result
+MLPutDouble(link, real)
+	MLINK	link
+	double_nt 	real
+
+mlapi_result
+MLPutFunction(link, name, nargs)
+	MLINK		link
+	kcharp_ct	name
+	long_st 	nargs
+
+
+ # Basic GET-functions
+
+mlapi_token
+MLGetNext(link)
+	MLINK	link
+
+int
+MLGetInteger(link)
+	MLINK	link
+CODE:   
+	if (!MLGetInteger(link, &RETVAL)) XSRETURN_UNDEF;
+OUTPUT: 
+	RETVAL
+
+double
+MLGetDouble(link)
+	MLINK	link
+CODE:   
+	if (!MLGetDouble(link, &RETVAL)) XSRETURN_UNDEF;
+OUTPUT: 
+	RETVAL
+
+kcharp_ct
+MLGetString(link)
+	MLINK	link
+CODE:   
+	if (!MLGetString(link, &RETVAL)) XSRETURN_UNDEF;
+OUTPUT: 
+	RETVAL
+CLEANUP:
+        MLDisownString(link, RETVAL);
+
+SV *
+MLGetSymbol(link)
+	MLINK	link
+PREINIT:
+	kcharp_ct symname;
+CODE:   
+	if (!MLGetSymbol(link, &symname)) XSRETURN_UNDEF;
+        RETVAL = make_symbol((char *)symname);
+OUTPUT: 
+	RETVAL
+CLEANUP:
+        MLDisownSymbol(link, symname);
+
+
+void
+MLGetFunction(link)
+	MLINK	link
+PREINIT:
+	char *    name;
+	long_st   nargs;
+        SV *      symbol;
+PPCODE:
+        if (!MLGetFunction(link, (kcharpp_ct) &name, &nargs)) {
+          XSRETURN_UNDEF;
+        }
+        symbol = make_symbol(name);
+        MLDisownSymbol(link, name);
+        XPUSHs(sv_2mortal(symbol));
+        if (GIMME_V == G_ARRAY) {
+          XPUSHs(sv_2mortal(newSViv(nargs)));
+          XSRETURN(2);
+        } else {
+          XSRETURN(1);
+        }
+
+void
+MLGetRealList(link)
+	MLINK	link
+PREINIT:
+	doublep_nt	array;
+	long_st         len;
+        long_st         i;
+PPCODE:
+        if (!MLGetRealList(link, &array, &len)) {
+          XSRETURN_UNDEF;
+        }
+        EXTEND(sp, len);
+        for (i=0;i<len;i++) {
+          PUSHs(sv_2mortal(newSVnv(array[i])));
+        }
+        MLDisownRealList(link, array, len);
+        XSRETURN(len);
+
+void
+symbol(name)
+	SV *	name
+PPCODE:
+        ST(0) = sv_2mortal(newRV_noinc(newSVsv(name)));
+        sv_bless(ST(0), gv_stashpv(SYMNAME,1));
+	XSRETURN(1);
+
+mlapi_result
+PutToken(link, elem, ...)
+	MLINK	link
+	SV *	elem
+CODE:
+	if (SvROK(elem)) {
+          if (sv_isobject(elem) && sv_isa(elem, SYMNAME)) {
+            if (items > 2) {
+              RETVAL = MLPutFunction(link, SvPV(SvRV(elem), na), SvIV(ST(2)));
+            } else {
+              RETVAL = MLPutSymbol(link, SvPV(SvRV(elem), na));
+            }
+          } else {
+            warn( "Math::ematica::PutScalar() -- elem is not a Math::ematica::symbol" );
+            XSRETURN_UNDEF;
+          }
+        } else if (SvIOKp(elem)) {
+          RETVAL = MLPutInteger(link, SvIV(elem));
+        } else if (SvNOKp(elem)) {
+          RETVAL = MLPutDouble(link, SvNV(elem));
+        } else if (SvPOKp(elem)) {
+          RETVAL = MLPutString(link, SvPV(elem, na));
+        } else {
+          RETVAL = 0;
+        }
 OUTPUT:
-    mlink
+	RETVAL
 
-int
-MLPutSymbol(mlink, string)
-	MLINK	mlink
-	char*	string
-
-int
-MLEndPacket(mlink)
-	MLINK	mlink
-
-int
-MLNextPacket(mlink)
-	MLINK	mlink
-
-int
-MLNewPacket(mlink)
-	MLINK	mlink
-
-int
-MLGetType(mlink)
-	MLINK	mlink
-
-char *
-MLGetString(mlink)
-	MLINK	mlink
+SV *
+read_packet(link)
+	MLINK	link
 CODE:
-{
-    char *string;
-    MLGetString(mlink,&string);
-    ST(0) = sv_newmortal();
-    if (string) {
-        sv_setpv((SV*)ST(0), string);
-        MLDisownString(mlink, string);
-    }
-}
+	if ((RETVAL = read_packet(link)) == NULL) {
+          XSRETURN_UNDEF;
+        }
+OUTPUT:
+	RETVAL
 
-char *
-MLGetSymbol(mlink)
-	MLINK	mlink
-CODE:
-{
-    char *string;
-    MLGetSymbol(mlink,&string);
-    ST(0) = sv_newmortal();
-    if (string) {
-        sv_setpv((SV*)ST(0), string);
-        MLDisownSymbol(mlink, string);
-    }
-}
-
-int
-MLGetInteger(mlink)
-	MLINK	mlink
-CODE:
-{
-    int result;
-    
-    ST(0) = sv_newmortal();
-    if(MLGetInteger(mlink,&result)) {
-        sv_setiv((SV*)ST(0), result);
-    }
-}
-
-float
-MLGetFloat(mlink)
-	MLINK	mlink
-CODE:
-{
-    float result;
-    
-    ST(0) = sv_newmortal();
-    if(MLGetFloat(mlink,&result)) {
-        sv_setnv((SV*)ST(0), result);
-    }
-}
-
-double
-MLGetDouble(mlink)
-	MLINK	mlink
-CODE:
-{
-    double result;
-    
-    ST(0) = sv_newmortal();
-    if(MLGetDouble(mlink,&result)) {
-        sv_setnv((SV*)ST(0), result);
-    }
-}
-           
-double
-MLGetReal(mlink)
-	MLINK	mlink
-CODE:
-{
-    double result;
-    
-    ST(0) = sv_newmortal();
-    if(MLGetReal(mlink,&result)) {
-        sv_setnv((SV*)ST(0), result);
-    }
-}
-           
-int
-MLPutFunction(mlink, name, argc)
-	MLINK	mlink
-	char*	name
-	long	argc
-
-int
-MLBytesToGet(mlink)
-	MLINK	mlink
-CODE:
-{
-    long	count;
-
-    ST(0) = sv_newmortal();
-    if (MLBytesToGet(mlink, &count)) {
-        sv_setiv(ST(0), (IV)count);
-    }
-}
-
-int
-MLBytesToPut(mlink)
-	MLINK	mlink
-CODE:
-{
-    long	count;
-
-    ST(0) = sv_newmortal();
-    if (MLBytesToPut(mlink, &count)) {
-        sv_setiv(ST(0), (IV)count);
-    }
-}
-
-int
-MLCheckFunction(mlink, func)
-	MLINK	mlink
-	char*	func
-CODE:
-{
-    long argc;
-
-    ST(0) = sv_newmortal();
-    if (MLCheckFunction(mlink, func, &argc)) {
-        sv_setiv(ST(0), (IV)argc);
-    }
-}
-
-int
-MLError(mlink)
-	MLINK	mlink
-
-int
-MLClearError(mlink)
-	MLINK	mlink
-
-int
-MLSetError(mlink, errno)
-	MLINK	mlink
-	int	errno
-
-char*
-MLErrorMessage(mlink)
-	MLINK	mlink
-
-char*
-MLGetData(mlink, max)
-	MLINK	mlink
-	long	max
-CODE:
-{
-    char*       buf = (char *) malloc(max);
-    long	count;
-
-    if (!buf) croak("Out of memory");
-    ST(0) = sv_newmortal();
-    if(MLGetData(mlink, buf,max,&count)) {
-        sv_setpvn((SV*)ST(0), buf, count);
-    }
-}
         
-
-void
-MLGetFunction(mlink) 
-	MLINK	mlink
-PPCODE:
-{
-	char*	name;
-	long	length;
-
-        if (MLGetFunction(mlink, &name, &length)) {
-            if (GIMME == G_ARRAY) {
-                long i;
-                
-                EXTEND(sp, 2);
-                PUSHs (sv_2mortal (newSVpv (name,0)));
-                PUSHs (sv_2mortal (newSViv (length)));
-            } else {
-                PUSHs (sv_2mortal (newSViv(length)));
-            }
-            MLDisownSymbol(mlink, name);
-        } else {
-            PUSHs(&sv_undef);
-        }
-}
-
-void
-MLGetRealList(mlink) 
-	MLINK	mlink
-PPCODE:
-{
-	double*	array;
-	long	length;
-
-        if (MLGetRealList(mlink, &array, &length)) {
-            if (GIMME == G_ARRAY) {
-                long i;
-                
-                EXTEND(sp, length);
-                for(i=0;i<length;i++) {
-                    PUSHs (sv_2mortal (newSVnv (array[i])));
-                }
-            } else {
-                PUSHs (sv_2mortal (newSViv(length)));
-            }
-            MLDisownRealList(mlink, array, length);
-        } else {
-            PUSHs(&sv_undef);
-        }
-}
-
-int
-MLPutRealList(mlink, ...)
-	MLINK	mlink
-CODE:
-{
-    double *vector = NULL;
-    long   count   = items-1;
-
-    if (count) {
-        int i;
-
-        vector = (double *)malloc(count * sizeof(double));
-        if (!vector) croak("Out of memory");
-        for (i=1;i<items;i++) {
-            vector[i] = (double)SvNV(ST(i));
-        }
-    }
-    ST(0) = sv_newmortal();
-    RETVAL = MLPutRealList(mlink, vector, count);
-    if (vector) free(vector);
-}
-
-int
-MLPutNext(mlink, integer1)
-	MLINK	mlink
-	int	integer1
-
-int
-MLPutSize(mlink, long1)
-	MLINK	mlink
-	long	long1
-
-int
-MLPutData(mlink, string)
-	MLINK	mlink
-	char *	string
-CODE:
-{
-    long length;
-    string = SvPV((SV*)ST(1),length);
-
-    fprintf(stderr, "MLPutData %ld\n", length);
-    RETVAL = MLPutData(mlink, string, length);
-    ST(0) = sv_newmortal();
-    sv_setiv(ST(0), (IV)RETVAL);
-}
-
-int
-MLPutArgCount(mlink, long1)
-	MLINK	mlink
-	long	long1
-
-int
-MLPutShortInteger(mlink, integer1)
-	MLINK	mlink
-	int	integer1
-
-int
-MLPutInteger(mlink, integer1)
-	MLINK	mlink
-	int	integer1
-
-int
-MLPutLongInteger(mlink, long1)
-	MLINK	mlink
-	long	long1
-
-int
-MLPutFloat(mlink, number1)
-	MLINK	mlink
-	double	number1
-
-int
-MLPutReal(mlink, number1)
-	MLINK	mlink
-	double	number1
-
-int
-MLPutDouble(mlink, number1)
-	MLINK	mlink
-	double	number1
-
-int
-MLPutString(mlink, string1)
-	MLINK	mlink
-	char*	string1
-
-int
-MLPutMessage(mlink, long1)
-	MLINK	mlink
-	unsigned long	long1

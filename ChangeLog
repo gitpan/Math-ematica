@@ -1,71 +1,10 @@
-Mon Mar 25 22:26:18 MET 1996   Ulrich Pfeifer <pfeifer@ls6.informatik.uni-dortmund.de>
+Sun Dec 21 12:40:58 1997  Ulrich Pfeifer  <pfeifer@wait.de>
 
-Description patch 6:
+	* ematica.xs: Added GetFunction
 
-	o Added README.
-	o New version numbering and handling. XSPROTOARG added.
-	o Renamed package to Math::ematica.
-	o Checks for out-of-memory errors.
-	o Fixed bad test numbering.
+Revision history for Perl extension Math::ematica.
 
-	Fri Nov 24 17:21:30 MET 1995   Ulrich Pfeifer <pfeifer@ls6.informatik.uni-dortmund.de>
-
-. Description:
-
-Mathematica.pm
-	PutCall now has a better idea what Strings, Symbols and
-	Numbers are.
-
-Mathematica.pod
-	Fixed documentation for Call();
-
-Mathematica.xs
-	Added MLGetRealList() and MLPutRealList().
-
-tests
-	Now passes strings quoted.
-
-
-Fri Nov 24 11:28:46 MET 1995   Ulrich Pfeifer <pfeifer@ls6.informatik.uni-dortmund.de>
-
-. Description:
-
-MANIFEST
-	Added t/basic.t. Removed test.pl. More tests.
-Makefile.PL
-	Support for Test:Harness.
-Mathematica.pm
-	Convenience functions. 
-Mathematica.pod
-	Basic documentation.
-Mathematica.xs
-	Bugfixes ;-)
-t/basic.t
-	Former test.pl using convenience functions.
-
-Thu Nov 23 16:21:48 MET 1995   Ulrich Pfeifer <pfeifer@ls6.informatik.uni-dortmund.de>
-
-. Description:
-
-	Added ChangeLog.
-
-	Automatic version computation.
-
-	Made OO-Interface.
-
-	Removed all Functions. Added some by hand with more perlish
-	interface.
-
-	Uses oo_Interface now.
-
-	Removed trash. Only MLINK is now supported.
-
-Thu Nov 23 09:25:20 MET 1995   Ulrich Pfeifer <pfeifer@ls6.informatik.uni-dortmund.de>
-
-. Description:
-
-	Thu Nov 23 09:21:19 MET 1995   Ulrich Pfeifer <pfeifer@ls6.informatik.uni-dortmund.de>
-
-. Description:
-
+1.00  Sat Dec 20 14:35:09 1997
+        - original version; created by h2xs 1.18
 	
+

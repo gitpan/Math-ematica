@@ -1,13 +1,12 @@
-ChangeLog                    
+ChangeLog
 MANIFEST
 Makefile.PL
+README
+constants.c
+constants.h
 ematica.pm
-ematica.pod
 ematica.xs
-README                     Part of the manual to make CPAN happy
-mh2xs
-patchlevel.h
-start-server               Script to start math as server on a designated host.
-t/basic.t                  Basic tests
-t/compl.t                  More complex tests (return arrays).
+t/basic.t
+t/callback.t
+t/call.t
 typemap
