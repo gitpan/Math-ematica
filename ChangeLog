@@ -1,3 +1,14 @@
+2000-12-10  Ulrich Pfeifer  <pfeifer@wait.de>
+
+	* ematica.pm: Solaris nroff seems to hav eproblems with the output
+	generated for '=item C<something>'.
+
+	* Makefile.PL: Added MAN3PODS to WriteMakefile call.  Newer
+	versions of Perl would not generate manual pages without that.
+
+	* Added ppport.h for compatibility with newer Perls.  Verified
+	that the module works with Mathematica 4.0 for Solaris.
+
 Sun Dec 21 12:40:58 1997  Ulrich Pfeifer  <pfeifer@wait.de>
 
 	* ematica.xs: Added GetFunction

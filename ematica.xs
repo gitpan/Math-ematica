@@ -19,6 +19,7 @@ extern "C" {
 #include "EXTERN.h"
 #include "perl.h"
 #include "XSUB.h"
+#include "ppport.h"
 #ifdef __cplusplus
 }
 #endif
@@ -95,7 +96,7 @@ read_packet (MLINK link)
       AV * array;
 
       if (!MLGetFunction (link, &string, &nargs))
-	return (&sv_undef);
+	return (&PL_sv_undef);
 
       array = newAV ();
       av_extend(array, nargs+1);
@@ -140,7 +141,7 @@ CODE:
   if (!argv) croak ("Out of memory");
 
   for (argn = 0; argn < items; argn++) {
-    argv[argn] = (char *) SvPV (ST (argn), na);
+    argv[argn] = (char *) SvPV (ST (argn), PL_na);
   }
 
   link = MLOpenArgv (env, argv, argv + items, &merrno);
@@ -330,9 +331,9 @@ CODE:
 	if (SvROK(elem)) {
           if (sv_isobject(elem) && sv_isa(elem, SYMNAME)) {
             if (items > 2) {
-              RETVAL = MLPutFunction(link, SvPV(SvRV(elem), na), SvIV(ST(2)));
+              RETVAL = MLPutFunction(link, SvPV(SvRV(elem), PL_na), SvIV(ST(2)));
             } else {
-              RETVAL = MLPutSymbol(link, SvPV(SvRV(elem), na));
+              RETVAL = MLPutSymbol(link, SvPV(SvRV(elem), PL_na));
             }
           } else {
             warn( "Math::ematica::PutScalar() -- elem is not a Math::ematica::symbol" );
@@ -343,7 +344,7 @@ CODE:
         } else if (SvNOKp(elem)) {
           RETVAL = MLPutDouble(link, SvNV(elem));
         } else if (SvPOKp(elem)) {
-          RETVAL = MLPutString(link, SvPV(elem, na));
+          RETVAL = MLPutString(link, SvPV(elem, PL_na));
         } else {
           RETVAL = 0;
         }

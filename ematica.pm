@@ -4,9 +4,9 @@
 # Author          : Ulrich Pfeifer
 # Created On      : Sat Dec 20 17:05:18 1997
 # Last Modified By: Ulrich Pfeifer
-# Last Modified On: Mon Feb 16 22:09:33 1998
+# Last Modified On: Sun Dec 10 16:03:52 2000
 # Language        : CPerl
-# Update Count    : 210
+# Update Count    : 216
 # Status          : Unknown, Use with caution!
 #
 # (C) Copyright 1997, Ulrich Pfeifer, all rights reserved.
@@ -50,7 +50,7 @@ require AutoLoader;
 @EXPORT_OK = map @{$EXPORT_TAGS{$_}}, keys %EXPORT_TAGS;
 
 # $Format: "$VERSION = sprintf('%5.3f', $ProjectMajorVersion$/10 + ($ProjectMinorVersion$-1)/1000);"$
-$VERSION = sprintf('%5.3f', 11/10 + (7-1)/1000);
+$VERSION = sprintf('%5.3f', 11/10 + (8-1)/1000);
 
 sub AUTOLOAD {
   # This AUTOLOAD is used to 'autoload' constants from the constant()
@@ -105,9 +105,10 @@ invited to complete the documentation (and fix grammos and
 typos). Since I am no native English speaker, I will delay the writing
 of real documentation until the API has stabilized.
 
-I do develop this module using Mathematica 3.0.1 on a Linux 2.0.30
-box. Let me know, if it B<does> work with other versions of
-Mathematica or does B<not> work on other *nix flavors.
+I developed this module using Mathematica 3.0.1 on a Linux 2.0.30 box.
+I verified that it still works with Mathematica 4.0 for Solaris.  Let
+me know, if it B<does> work with other versions of Mathematica or does
+B<not> work on other *nix flavors.
 
 =head1 DESCRIPTION
 
@@ -126,13 +127,13 @@ scalars in Perl.
 
 =over 5
 
-=item  C<PACKET>
+=item PACKET
 
 The C<PACKET> tag identifies constants used as packet types.
 
   print "Got result packet" if $link->NextPacket == RETURNPKT;
 
-=item  C<TYPE>
+=item TYPE
 
 The C<TYPE> tag identifies constants used as elements types.
 
@@ -144,7 +145,7 @@ The C<TYPE> tag identifies constants used as elements types.
 
 =over 5
 
-=item C<FUNC>
+=item FUNC
 
 The C<FUNC> tag currently only contains the C<symbol> function which
 returns the symbol for a given name.
@@ -523,7 +524,7 @@ sub install {
 
 I wish to thank Jon Orwant of I<The Perl Journal>, Nancy Blachman from
 I<The Mathematica Journal> and Brett H. Barnhart from I<Wolfram
-Research>.
+Research>
 
 Jon brought the earlier versions of this module to the attention of
 Nancy Blachman. She in turn did contact Brett H. Barnhart who was so
@@ -536,9 +537,12 @@ even read something more about this module one day ;-)
 
 Special thanks to Randal L. Schwartz for naming this module.
 
+Thanks also to Richard Jones for providing a login on a Solaris box so
+that I could check that the module still works with Mathematica 4.0.
+
 =head1 Copyright
 
-The B<Math:ematica> module is Copyright (c) 1996,1997,1998 Ulrich
+The B<Math:ematica> module is Copyright (c) 1996,1997,1998,2000 Ulrich
 Pfeifer. Germany.  All rights reserved.
 
 You may distribute under the terms of either the GNU General Public

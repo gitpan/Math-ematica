@@ -20,9 +20,10 @@ WARNING
     I am no native English speaker, I will delay the writing of real
     documentation until the API has stabilized.
 
-    I do develop this module using Mathematica 3.0.1 on a Linux 2.0.30 box.
-    Let me know, if it does work with other versions of Mathematica or does
-    not work on other *nix flavors.
+    I developed this module using Mathematica 3.0.1 on a Linux 2.0.30 box. I
+    verified that it still works with Mathematica 4.0 for Solaris. Let me
+    know, if it does work with other versions of Mathematica or does not
+    work on other *nix flavors.
 
 DESCRIPTION
     The `Math::ematica' module provides an interface to the MathLink(TM)
@@ -36,19 +37,17 @@ DESCRIPTION
     scalars in Perl.
 
 Exported constants
-    `PACKET'
+    PACKET
          The `PACKET' tag identifies constants used as packet types.
 
            print "Got result packet" if $link->NextPacket == RETURNPKT;
 
-    `TYPE'
-         The `TYPE' tag identifies constants used as elements types.
+    TYPE The `TYPE' tag identifies constants used as elements types.
 
            print "Got a symbol" if $link->GetNext == MLTKSYM;
 
 Exported functions
-    `FUNC'
-         The `FUNC' tag currently only contains the `symbol' function which
+    FUNC The `FUNC' tag currently only contains the `symbol' function which
          returns the symbol for a given name.
 
            $sym = symbol 'Sin';
@@ -220,12 +219,12 @@ The convenience interface
       use Math::ematica;
       sub addtwo {
         my ($x, $y) = @_;
-      
+  
         $x + $y;
       }
       $ml->register('AddTwo', \&addtwo, 'Integer', 'Integer');
       $ml->main;
-      
+  
     Inside the Mathematica do:
 
       Install["try.pl"]
@@ -243,7 +242,7 @@ SEE ALSO
 
 ACKNOWLEDGEMENTS
     I wish to thank Jon Orwant of *The Perl Journal*, Nancy Blachman from
-    *The Mathematica Journal* and Brett H. Barnhart from *Wolfram Research*.
+    *The Mathematica Journal* and Brett H. Barnhart from *Wolfram Research*
 
     Jon brought the earlier versions of this module to the attention of
     Nancy Blachman. She in turn did contact Brett H. Barnhart who was so
@@ -256,9 +255,12 @@ ACKNOWLEDGEMENTS
 
     Special thanks to Randal L. Schwartz for naming this module.
 
+    Thanks also to Richard Jones for providing a login on a Solaris box so
+    that I could check that the module still works with Mathematica 4.0.
+
 Copyright
-    The Math:ematica module is Copyright (c) 1996,1997,1998 Ulrich Pfeifer.
-    Germany. All rights reserved.
+    The Math:ematica module is Copyright (c) 1996,1997,1998,2000 Ulrich
+    Pfeifer. Germany. All rights reserved.
 
     You may distribute under the terms of either the GNU General Public
     License or the Artistic License, as specified in the Perl README file.
