@@ -1,3 +1,15 @@
+2005-04-17  Ulrich Pfeifer  <pfeifer@wait.de>
+
+	* Removed bang line from install.pl and call it via $^X
+
+	The last test did fail on every system were /usr/local/bin/perl
+	was not a Perl binary compatible with the $^X perl.
+
+	* New code to locate libML.a and mathlink.h
+
+	The code to spot the files is even more ugly but works with at
+	least one 5.0 Installation.
+	
 2000-12-19  Ulrich Pfeifer  <pfeifer@wait.de>
 
 	* ematica.xs, emathica.pm: do not call LinkClose during global

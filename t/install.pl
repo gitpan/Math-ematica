@@ -1,16 +1,15 @@
-#!/usr/local/bin/perl 
 #                              -*- Mode: Perl -*- 
 # $Basename: install.pl $
 # $Revision: 1.4 $
 # Author          : Ulrich Pfeifer
 # Created On      : Sun Jan 25 18:34:23 1998
 # Last Modified By: Ulrich Pfeifer
-# Last Modified On: Mon Feb 16 22:10:53 1998
+# Last Modified On: Sun Apr 17 18:07:36 2005
 # Language        : CPerl
-# Update Count    : 53
+# Update Count    : 56
 # Status          : Unknown, Use with caution!
 # 
-# (C) Copyright 1998, Ulrich Pfeifer, all rights reserved.
+# (C) Copyright 1998,2005 Ulrich Pfeifer, all rights reserved.
 # 
 # 
 use lib qw(blib/lib blib/arch);

@@ -4,9 +4,9 @@
 # Author          : Ulrich Pfeifer
 # Created On      : Sat Dec 20 14:42:50 1997
 # Last Modified By: Ulrich Pfeifer
-# Last Modified On: Tue Dec 19 21:59:27 2000
+# Last Modified On: Sun Apr 17 18:17:55 2005
 # Language        : CPerl
-# Update Count    : 44
+# Update Count    : 52
 # Status          : Unknown, Use with caution!
 # 
 # (C) Copyright 1997, Ulrich Pfeifer, all rights reserved.
@@ -30,26 +30,32 @@ unless ($conf{bindir}) {
   $INCDIR    = $ADDONSDIR;
   $LIBDIR    = $ADDONSDIR;
 } else {
-  $INCDIR    = $conf{bindir};
-  $LIBDIR    = $conf{bindir};
+  if ($conf{bindir} =~ s:/Executables$::) {
+    # This seems to work with Mathematica 5.0
+    $INCDIR    = "$conf{bindir}/AddOns/MathLink/DeveloperKit/Linux/CompilerAdditions";
+    $LIBDIR    = "$conf{bindir}/AddOns/MathLink/DeveloperKit/Linux/CompilerAdditions";
+  } else {
+    # this used to work with Mathematica 2.0
+    $INCDIR    = $conf{bindir};
+    $LIBDIR    = $conf{bindir};
+  }
 }
 
 WriteMakefile
   (
-   'NAME'	=> 'Math::ematica',
-   # $Format: "   'VERSION'    => sprintf('%5.3f', $ProjectMajorVersion$/10 + ($ProjectMinorVersion$-1)/1000),"$ 
-   'VERSION'    => sprintf('%5.3f', 11/10 + (9-1)/1000),
-   'dist'       => {COMPRESS => 'gzip -9f'},
-   'LIBS'	=> ["-L$LIBDIR -lML", '-lm'],
-   'DEFINE'	=> '',
-   'INC'	=> "-I$INCDIR",
-   'OBJECT'     => 'ematica.o constants.o',
-   'MAN3PODS'   => { 'ematica.pm' => 'blib/man3/Math::ematica.3'},
-   'XSPROTOARG' => '-prototypes',
-   'dist'       => {
-                    COMPRESS => 'gzip -9f',
-                    PREOP    => 'pod2text ematica.pm > README',
-                   },
+   'NAME'	  => 'Math::ematica',
+   'VERSION_FROM' => 'ematica.pm',
+   'dist'         => {COMPRESS => 'gzip -9f'},
+   'LIBS'	  => ["-L$LIBDIR -lML", '-lm'],
+   'DEFINE'	  => '',
+   'INC'	  => "-I$INCDIR",
+   'OBJECT'       => 'ematica.o constants.o',
+   'MAN3PODS'     => { 'ematica.pm' => 'blib/man3/Math::ematica.3'},
+   'XSPROTOARG'   => '-prototypes',
+   'dist'         => {
+                      COMPRESS => 'gzip -9f',
+                      PREOP    => 'pod2text ematica.pm > README',
+                     },
   );
 
 sub find_math_installation {
@@ -66,6 +72,13 @@ sub find_math_installation {
     warn "Could not find mcc in your \$PATH\n";
     return;
   }
+
+  # set a reasonable default, as the stuff does not seem to work with
+  # newer Mathematica versions
+
+  my $mccdir = -l $mcc ? readlink $mcc : $mcc;
+  $mccdir =~ s:/[^/]+$::;
+  $var{bindir} = $mccdir;
 
   # Read mcc script and exract path information
   open(MCC, "< $mcc") or die "Could not open '$mcc' for reading\n";

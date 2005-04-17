@@ -26,7 +26,7 @@ WARNING
     work on other *nix flavors.
 
 DESCRIPTION
-    The `Math::ematica' module provides an interface to the MathLink(TM)
+    The "Math::ematica" module provides an interface to the MathLink(TM)
     library. Functions are not exported and should be called as methods.
     Therefore the Perl names have the 'ML' prefix stripped. Since Perl can
     handle multiple return values, methods fetching elements from the link
@@ -38,16 +38,16 @@ DESCRIPTION
 
 Exported constants
     PACKET
-         The `PACKET' tag identifies constants used as packet types.
+         The "PACKET" tag identifies constants used as packet types.
 
            print "Got result packet" if $link->NextPacket == RETURNPKT;
 
-    TYPE The `TYPE' tag identifies constants used as elements types.
+    TYPE The "TYPE" tag identifies constants used as elements types.
 
            print "Got a symbol" if $link->GetNext == MLTKSYM;
 
 Exported functions
-    FUNC The `FUNC' tag currently only contains the `symbol' function which
+    FUNC The "FUNC" tag currently only contains the "symbol" function which
          returns the symbol for a given name.
 
            $sym = symbol 'Sin';
@@ -59,99 +59,77 @@ The plain interface
     behave different than the corresponding C functions. Look in your
     MathLink manual for details.
 
-  `new'
-
-    The constructor is just a wrapper around `MLOpenArgv'.
+  "new"
+    The constructor is just a wrapper around "MLOpenArgv".
 
       $ml = new Math::ematica '-linklaunch', '-linkname', 'math -mathlink';
 
     The link is automatically activated on creation and will be closed upon
-    destruction. So `MLCloseLink' is not accessible; use `undef' or lexical
+    destruction. So "MLCloseLink" is not accessible; use "undef" or lexical
     variables to store links. If you use a global variable and dont force
     the link close, you will get an optional warning during global
     destruction.
 
-  `ErrorMessage'
-
+  "ErrorMessage"
       print $link->ErrorMessage;
 
-  `EndPacket'
+  "EndPacket"
+  "Flush"
+  "NewPacket"
+  "NextPacket"
+  "Ready"
+  "PutSymbol"
+  "PutString"
+  "PutInteger"
+  "PutDouble"
+  "PutFunction"
+  "GetNext"
+  "GetInteger"
+  "GetDouble"
+  "GetString"
+    The method does the appropriate "MLDisownString" call for you.
 
-  `Flush'
+  "GetSymbol"
+    The module does the appropriate "MLDisownSymbol" call for you. It also
+    blesses the result string into the package "Math::ematica::symbol".
 
-  `NewPacket'
-
-  `NextPacket'
-
-  `Ready'
-
-  `PutSymbol'
-
-  `PutString'
-
-  `PutInteger'
-
-  `PutDouble'
-
-  `PutFunction'
-
-  `GetNext'
-
-  `GetInteger'
-
-  `GetDouble'
-
-  `GetString'
-
-    The method does the appropriate `MLDisownString' call for you.
-
-  `GetSymbol'
-
-    The module does the appropriate `MLDisownSymbol' call for you. It also
-    blesses the result string into the package `Math::ematica::symbol'.
-
-  `Function'
-
+  "Function"
     Returns the function name and argument count in list context. In scalar
     contex only the function name is returned.
 
-  `GetRealList'
-
+  "GetRealList"
     Returns the array of reals.
 
 The convenience interface
-  `PutToken'
-
+  "PutToken"
     Puts a single token according to the passed data type.
 
       $link->PutToken(1);               # MLPutInteger
 
-    Symbols are translated to `MLPutFunction' if the arity is provided as
+    Symbols are translated to "MLPutFunction" if the arity is provided as
     aditional parameter.
 
       $link->PutToken(symbol 'Pi');     # MLPutSymbol
       $link->PutToken(symbol 'Sin', 1); # MLPutFunction
 
-  `read_packet'
-
+  "read_packet"
     Reads the current packet and returns it as nested data structure. The
-    implementaion is not complete. But any packet made up of `MLTKREAL',
-    `MLTKINT', `MLTKSTR', `MLTKSYM', and `MLTKFUNC' should translate
-    correctely. A function symbol `List' is dropped automatically. So the
-    Mathematica expression `List[1,2,3]' translates to the Perl expression
-    `[1,2,3]'.
+    implementaion is not complete. But any packet made up of "MLTKREAL",
+    "MLTKINT", "MLTKSTR", "MLTKSYM", and "MLTKFUNC" should translate
+    correctely. A function symbol "List" is dropped automatically. So the
+    Mathematica expression "List[1,2,3]" translates to the Perl expression
+    "[1,2,3]".
 
     *Mabybe this is *too* convenient?*.
 
-  `call'
-
+  "call"
     Call is the main convenience interface. You will be able to do most if
     not all using this call.
 
     Note that the syntax is nearly the same as you are used to as *FullForm*
     in Mathematica. Only the function names are moved inside the brackets
     and separated with ',' from the arguments. The method returns the nested
-    data structures read by `read_packet'.
+    data structures read by "read_packet".
 
       $link->call([symbol 'Sin', 3.14159265358979/2]); # returns something near 1
 
@@ -163,13 +141,12 @@ The convenience interface
 
     This returns a reference to an array of doubles.
 
-    You may omit the first `symbol'. *Maybe we should choose the default
+    You may omit the first "symbol". *Maybe we should choose the default
     mapping to *Symbol* an require *Strings*s to be marked?*
 
-  `install'
-
-    If you find this too ugly, you may `install' Mathematica functions as
-    Perl functions using the `install' method.
+  "install"
+    If you find this too ugly, you may "install" Mathematica functions as
+    Perl functions using the "install" method.
 
       $link->install('Sin',1);
       $link->install('Pi');
@@ -179,22 +156,20 @@ The convenience interface
       Sin(Divide(Pi(),2.0)) # should return 1 (on machines which can
                             # represent '2.0' *exactely* in a double ;-)
 
-    The `install' method takes the name of the mathematica function, the
+    The "install" method takes the name of the mathematica function, the
     number of arguments and optional the name of the Perl function as
     argument.
 
       $link->install('Sin',1,'sin_by_mathematica');
 
-    Make shure that you do not call any *installed* function after the
-    `$link' has gone. Wild things will happen!
+    Make shure that you do not call any *installed* function after the $link
+    has gone. Wild things will happen!
 
-  `send_packet'
-
-    Is the sending part of `call'. It translates the expressions passed to a
+  "send_packet"
+    Is the sending part of "call". It translates the expressions passed to a
     Mathematica package and puts it on the link.
 
-  `register'
-
+  "register"
     This method allows to register your Perl functions to Mathematica.
     *Registered* functions may be called during calculations.
 
@@ -214,8 +189,7 @@ The convenience interface
       $link->call(['DoPrint',12]);
       $link->call(['DoPrint',"Hello"]);
 
-  `main'
-
+  "main"
     This method allows to have Perl scripts installed in a running
     Mathematica session. The Perl script try.pl might look like this:
 
@@ -240,8 +214,8 @@ AUTHOR
     Ulrich Pfeifer <pfeifer@wait.de>
 
 SEE ALSO
-    See also the perl(1) manpage and your Mathematica and MathLink
-    documentation. Also check the t/*.t files in the distribution.
+    See also perl(1) and your Mathematica and MathLink documentation. Also
+    check the t/*.t files in the distribution.
 
 ACKNOWLEDGEMENTS
     I wish to thank Jon Orwant of *The Perl Journal*, Nancy Blachman from
@@ -262,7 +236,7 @@ ACKNOWLEDGEMENTS
     that I could check that the module still works with Mathematica 4.0.
 
 Copyright
-    The Math:ematica module is Copyright (c) 1996,1997,1998,2000 Ulrich
+    The Math:ematica module is Copyright (c) 1996,1997,1998,2000,2005 Ulrich
     Pfeifer. Germany. All rights reserved.
 
     You may distribute under the terms of either the GNU General Public

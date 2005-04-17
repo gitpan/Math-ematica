@@ -4,9 +4,9 @@
 # Author          : Ulrich Pfeifer
 # Created On      : Sat Dec 20 17:05:18 1997
 # Last Modified By: Ulrich Pfeifer
-# Last Modified On: Tue Dec 19 21:59:42 2000
+# Last Modified On: Sun Apr 17 18:28:04 2005
 # Language        : CPerl
-# Update Count    : 219
+# Update Count    : 221
 # Status          : Unknown, Use with caution!
 #
 # (C) Copyright 1997, Ulrich Pfeifer, all rights reserved.
@@ -49,8 +49,7 @@ require AutoLoader;
 
 @EXPORT_OK = map @{$EXPORT_TAGS{$_}}, keys %EXPORT_TAGS;
 
-# $Format: "$VERSION = sprintf('%5.3f', $ProjectMajorVersion$/10 + ($ProjectMinorVersion$-1)/1000);"$
-$VERSION = sprintf('%5.3f', 11/10 + (9-1)/1000);
+$VERSION = '1.109';
 
 sub AUTOLOAD {
   # This AUTOLOAD is used to 'autoload' constants from the constant()
@@ -545,7 +544,7 @@ that I could check that the module still works with Mathematica 4.0.
 
 =head1 Copyright
 
-The B<Math:ematica> module is Copyright (c) 1996,1997,1998,2000 Ulrich
+The B<Math:ematica> module is Copyright (c) 1996,1997,1998,2000,2005 Ulrich
 Pfeifer. Germany.  All rights reserved.
 
 You may distribute under the terms of either the GNU General Public

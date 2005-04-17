@@ -13,3 +13,4 @@ t/install.pl
 t/install.t
 typemap
 ppport.h
+META.yml                                 Module meta-data (added by MakeMaker)
