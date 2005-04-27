@@ -4,9 +4,9 @@
 # Author          : Ulrich Pfeifer
 # Created On      : Sat Dec 20 17:05:18 1997
 # Last Modified By: Ulrich Pfeifer
-# Last Modified On: Sun Apr 17 18:28:04 2005
+# Last Modified On: Wed Apr 27 18:11:36 2005
 # Language        : CPerl
-# Update Count    : 221
+# Update Count    : 248
 # Status          : Unknown, Use with caution!
 #
 # (C) Copyright 1997, Ulrich Pfeifer, all rights reserved.
@@ -49,7 +49,7 @@ require AutoLoader;
 
 @EXPORT_OK = map @{$EXPORT_TAGS{$_}}, keys %EXPORT_TAGS;
 
-$VERSION = '1.109';
+$VERSION = '1.201';
 
 sub AUTOLOAD {
   # This AUTOLOAD is used to 'autoload' constants from the constant()
@@ -108,6 +108,9 @@ I developed this module using Mathematica 3.0.1 on a Linux 2.0.30 box.
 I verified that it still works with Mathematica 4.0 for Solaris.  Let
 me know, if it B<does> work with other versions of Mathematica or does
 B<not> work on other *nix flavors.
+
+The module still compiles fine with Mathematica 5.0 on Linux 2.6 and
+libc-2.3.2.
 
 =head1 DESCRIPTION
 
@@ -206,6 +209,10 @@ global destruction.
 =head2 C<GetString>
 
 The method does the appropriate C<MLDisownString> call for you.
+
+=head2 C<GetByteString>
+
+The method does the appropriate C<MLDisownByteString> call for you.
 
 =head2 C<GetSymbol>
 
@@ -463,6 +470,19 @@ sub dispatch {
       return $link->read_packet;
     } elsif ($packet == CALLPKT) {
       $link->do_callback;
+    } elsif ($packet == DISPLAYPKT) {
+      $link->GetNext() == MLTKSTR  or die "Expected DISPLAYPKT to start with 'MLTKSTR'";
+      $link->GetByteString() eq '' or die "Expected DISPLAYPKT to start with empty string";
+      # $link->GetNext() == MLTKFUNC or die "Expected DISPLAYPKT to contain 'MLTKFUNC'";
+      my $result = '';
+      while ($link->GetNext() == MLTKFUNC) {
+        my ($name, $nargs) = $link->GetFunction();
+        $$name eq "DisplayPacket"  or
+          $$name eq "DisplayEndPacket" or die "Expected 'DisplayPacket' symbol in DISPLAYPKT, not '$$name'";
+        $nargs == 1                  or die "Expected 'DisplayPacket'to habe one argument only";
+        $result .= $link->GetByteString();
+        return $result if $$name eq "DisplayEndPacket";
+      }
     } elsif ($packet == INPUTNAMEPKT) {
       next;
     } else {

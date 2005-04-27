@@ -25,6 +25,9 @@ WARNING
     know, if it does work with other versions of Mathematica or does not
     work on other *nix flavors.
 
+    The module still compiles fine with Mathematica 5.0 on Linux 2.6 and
+    libc-2.3.2.
+
 DESCRIPTION
     The "Math::ematica" module provides an interface to the MathLink(TM)
     library. Functions are not exported and should be called as methods.
@@ -88,6 +91,9 @@ The plain interface
   "GetDouble"
   "GetString"
     The method does the appropriate "MLDisownString" call for you.
+
+  "GetByteString"
+    The method does the appropriate "MLDisownByteString" call for you.
 
   "GetSymbol"
     The module does the appropriate "MLDisownSymbol" call for you. It also

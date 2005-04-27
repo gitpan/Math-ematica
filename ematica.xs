@@ -4,9 +4,9 @@
  * Author          : Ulrich Pfeifer
  * Created On      : Sat Dec 20 15:18:26 1997
  * Last Modified By: Ulrich Pfeifer
- * Last Modified On: Tue Dec 19 21:51:37 2000
+ * Last Modified On: Tue Apr 26 16:53:01 2005
  * Language        : C
- * Update Count    : 249
+ * Update Count    : 266
  * Status          : Unknown, Use with caution!
  * 
  * (C) Copyright 1997, Ulrich Pfeifer, all rights reserved.
@@ -269,6 +269,27 @@ OUTPUT:
 	RETVAL
 CLEANUP:
         MLDisownString(link, RETVAL);
+
+SV *
+MLGetByteString(link, ...)
+	MLINK	link
+CODE:
+        {         
+            long                 spec = 0;
+            const unsigned char *s;
+            long                 n;
+            if (items > 1) {
+              spec = SvNV(ST(1));
+            }
+            if (!MLGetByteString(link, &s, &n, spec)) {
+              XSRETURN_UNDEF;
+            } else {
+              RETVAL = newSVpvn(s, n);
+              MLDisownByteString(link, s, n);
+            }
+        }
+OUTPUT: 
+        RETVAL
 
 SV *
 MLGetSymbol(link)

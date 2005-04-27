@@ -4,9 +4,9 @@
 # Author          : Ulrich Pfeifer
 # Created On      : Sat Dec 20 17:04:10 1997
 # Last Modified By: Ulrich Pfeifer
-# Last Modified On: Sun Feb 15 14:44:52 1998
+# Last Modified On: Tue Apr 26 17:31:02 2005
 # Language        : CPerl
-# Update Count    : 202
+# Update Count    : 210
 # Status          : Unknown, Use with caution!
 # 
 # (C) Copyright 1997, Ulrich Pfeifer, all rights reserved.
@@ -80,3 +80,22 @@ $ml->install('Divide',2);
 
 test { Sin(Divide(Pi(),2.0)) == 1.0 };
 
+test {
+  $ml->call(
+            [symbol "ExportString",
+             [symbol "Plot",
+              [
+               symbol "Tan",
+               symbol "x"
+              ],
+              [
+               symbol "List",
+               symbol "x",
+               -3,
+               3
+              ],
+             ],
+             "eps"
+            ]
+           ) =~ /^%!/
+         };

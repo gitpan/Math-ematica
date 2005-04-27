@@ -4,9 +4,9 @@
 # Author          : Ulrich Pfeifer
 # Created On      : Sat Dec 20 17:04:10 1997
 # Last Modified By: Ulrich Pfeifer
-# Last Modified On: Sat Feb 14 11:00:35 1998
+# Last Modified On: Tue Apr 26 16:00:30 2005
 # Language        : CPerl
-# Update Count    : 96
+# Update Count    : 118
 # Status          : Unknown, Use with caution!
 # 
 # (C) Copyright 1997, Ulrich Pfeifer, all rights reserved.
@@ -91,3 +91,25 @@ test {$ml->GetNext == MLTKFUNC};
 test { my @t = $ml->GetRealList; @t == 3 };
 
 test { $ml->ErrorMessage =~ /everything \s+ ok/ix };
+
+# ExportString[Plot[Tan[x], {x, -3, 3}],"eps"]
+test {$ml->PutFunction('ExportString', 2)};
+test {$ml->PutFunction('Plot', 2)};
+test {$ml->PutFunction('Tan', 1)};
+test {$ml->PutSymbol('x')};
+test {$ml->PutFunction('List',3)};
+test {$ml->PutSymbol('x')};
+test {$ml->PutDouble(-3)};
+test {$ml->PutDouble(3)};
+test {$ml->PutString("eps")};
+test {$ml->EndPacket};
+test {$ml->Flush};
+
+test {$ml->NewPacket};
+test {$ml->NextPacket == DISPLAYPKT};
+test {$ml->GetNext == MLTKSTR};
+test {length($ml->GetByteString) == 0};
+
+test {$ml->NextPacket == DISPLAYPKT};
+test {$ml->GetNext == MLTKSTR};
+test {$ml->GetByteString =~ /^%!/};

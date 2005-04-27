@@ -1,3 +1,8 @@
+2005-04-27  Ulrich Pfeifer  <upf@de.uu.net>
+
+	* Added support for GetByteString
+	* Added rudimentary support for display packets 
+
 2005-04-17  Ulrich Pfeifer  <pfeifer@wait.de>
 
 	* Removed bang line from install.pl and call it via $^X
